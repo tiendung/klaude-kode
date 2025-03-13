@@ -139,10 +139,8 @@ When the user requests a new git commit, follow these steps:
    )"
 
 4. **Handle Pre-Commit Hook Failures:**
-   - If the commit fails due to pre-commit hook errors, retry the commit once. If the issue persists, investigate and address the error before retrying.
-
-5. **Final Check:**
-   - Run git status after the commit to verify that the changes were successfully committed.
+   - If the commit fails due to pre-commit hook errors, retry the commit once. 
+     If the issue persists, investigate and address the error before retrying.
 
 
 Important Notes:
