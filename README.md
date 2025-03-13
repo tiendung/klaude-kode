@@ -2,7 +2,7 @@
 
 - `claude mcp add brave-search -e BRAVE_API_KEY=$BRAVE_API_KEY -- npx -y @modelcontextprotocol/server-brave-search`
 
-- https://x6tdngyarpqy2vydkkdsew.solveit.fast.ai/dialog?did=167dialog?did=167
+- https://solveit/dialog?did=167dialog?did=167
 
 
 A lightweight reimplementation of claude-code assistant functionality without any external dependencies. This project provides a simple CLI interface to interact with Claude for coding tasks.
