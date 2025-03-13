@@ -3,7 +3,9 @@ import { LARGE_MODEL } from '../constants.js';
 
 const name = 'AgentTool';
 
-const DESCRIPTION = `Launch a new agent that has access to various tools. When you are searching for a keyword or file and are not confident that you will find the right match on the first try, use the Agent tool to perform the search for you. For example:
+const DESCRIPTION = `Launch a new agent that has access to various tools.
+When you are searching for a keyword or file and are not confident that you will find the 
+right match on the first try, use the Agent tool to perform the search for you. For example:
 
 - If you are searching for a keyword like "config" or "logger", the Agent tool is appropriate
 - If you want to read a specific file path, use the FileReadTool or GlobTool tool instead of the Agent tool, to find the match more quickly
