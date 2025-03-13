@@ -1,11 +1,11 @@
-import * as BashTool from './tools/bash.js';
-import * as FileReadTool from './tools/file-read.js';
-import * as FileWriteTool from './tools/file-write.js';
-import * as FileEditTool from './tools/file-edit.js';
-import * as GrepTool from './tools/grep.js';
-import * as GlobTool from './tools/glob.js';
-import * as LSTool from './tools/ls.js';
-import * as AgentTool from './tools/agent.js';
+import * as BashTool from './bash.js';
+import * as FileReadTool from './file-read.js';
+import * as FileWriteTool from './file-write.js';
+import * as FileEditTool from './file-edit.js';
+import * as GrepTool from './grep.js';
+import * as GlobTool from './glob.js';
+import * as LSTool from './ls.js';
+import * as AgentTool from './agent.js';
 
 export const tools = [
   BashTool,

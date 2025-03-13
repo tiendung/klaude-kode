@@ -4,8 +4,8 @@ import * as LSTool from './ls.js';
 import * as GrepTool from './grep.js';
 import * as GlobTool from './glob.js';
 import * as AgentTool from './agent.js';
-import { PRODUCT_NAME, PRODUCT_URL } from '../constants.js';
-import { PersistentShell } from '../persistent_shell.js';
+import { PRODUCT_NAME, PRODUCT_URL } from './constants.js';
+import { PersistentShell } from './persistent_shell.js';
 import { isAbsolute, relative, resolve } from 'path';
 import { statSync } from 'fs';
 
@@ -27,8 +27,8 @@ const BANNED_COMMANDS = [
   'http-prompt',
   'chrome',
   'firefox',
-  'safari',
-]
+  'safari'
+];
 
 const MAX_OUTPUT_LENGTH = 30000
 const MAX_RENDERED_LINES = 50

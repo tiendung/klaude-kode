@@ -1,5 +1,5 @@
 // Test script to check if GrepTool works after the fix
-import * as GrepTool from './tools/grep.js';
+import * as GrepTool from './grep.js';
 
 async function testGrepTool() {
   console.log("Testing GrepTool with real project pattern...");

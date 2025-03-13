@@ -1,5 +1,9 @@
 {
   "name": "koding.js",
   "module": "index.js",
-  "type": "module"
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "bun test-grep.js"
+  }
 }

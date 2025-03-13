@@ -1,5 +1,5 @@
-import { query } from '../api.js';
-import { LARGE_MODEL } from '../constants.js';
+import { query } from './api.js';
+import { LARGE_MODEL } from './constants.js';
 
 const name = 'AgentTool';
 
@@ -114,4 +114,4 @@ When you're done, provide a clear and concise summary of what you found.`];
   }
 };
 
-export { name, schema, handler }; 
+export { name, schema, handler };

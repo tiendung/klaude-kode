@@ -72,5 +72,12 @@ The system maintains a persistent shell session, allowing for stateful interacti
 - `index.js`: Entry point for the CLI
 - `prompts.js`: System prompts for Claude
 - `tools.js`: Tool registration
-- `tools/`: Individual tool implementations
+- `agent.js`: Agent tool implementation
+- `bash.js`: Bash command execution tool
+- `file-edit.js`: File editing tool
+- `file-read.js`: File reading tool
+- `file-write.js`: File writing tool
+- `glob.js`: File pattern matching tool
+- `grep.js`: File content search tool
+- `ls.js`: Directory listing tool
 - `persistent_shell.js`: Manages persistent shell sessions
