@@ -43,7 +43,5 @@ Here's a breakdown of JavaScript files and their line counts:
 - glob.js: 143 lines
 - index.js: 21 lines
 - ls.js: 200 lines
-- test-grep.js: 27 lines
-- test-persistent_shell.js: 56 lines
-Total lines of code: 2,184 lines
+Total lines of code: 2,101 lines
 ```
