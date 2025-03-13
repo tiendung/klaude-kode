@@ -69,9 +69,8 @@ The system maintains a persistent shell session, allowing for stateful interacti
 ## Project Structure
 
 - `api.js`: Core API interaction with Anthropic
-- `index.js`: Entry point for the CLI
+- `index.js`: Tool registration & Entry point for the CLI
 - `prompts.js`: System prompts for Claude
-- `tools.js`: Tool registration
 - `agent.js`: Agent tool implementation
 - `bash.js`: Bash command execution tool
 - `file-edit.js`: File editing tool
@@ -80,4 +79,4 @@ The system maintains a persistent shell session, allowing for stateful interacti
 - `glob.js`: File pattern matching tool
 - `grep.js`: File content search tool
 - `ls.js`: Directory listing tool
-- `persistent_shell.js`: Manages persistent shell sessions
+- `persistent_shell.js`: Manages persistent shell sessions (only used by BashTool)
