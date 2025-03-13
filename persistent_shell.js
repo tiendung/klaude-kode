@@ -13,11 +13,6 @@ const FILE_SUFFIXES = {
   STDERR: '-stderr',
      CWD: '-cwd',
 };
-const SHELL_CONFIGS = { 
-      '/bin/bash': '.bashrc', 
-  '/usr/bin/bash': '.bashrc', 
-       '/bin/zsh': '.zshrc',
-};
 
 // Simple function to quote shell commands
 function quoteCommand(cmd) {
@@ -68,15 +63,6 @@ export class PersistentShell {
     
     // Initialize CWD file with initial directory
     fs.writeFileSync(this.cwdFile, cwd);
-    
-    // Source shell config if available
-    const configFile = SHELL_CONFIGS[this.binShell];
-    if (configFile) {
-      const configFilePath = path.join(os.homedir(), configFile);
-      if (fs.existsSync(configFilePath)) {
-        this.sendToShell(`source ${configFilePath}`);
-      }
-    }
   }
 
   static instance = null;
