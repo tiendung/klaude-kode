@@ -27,9 +27,9 @@ async function getAvailableTools() {
   ]);
   
   return [
-    grepModule.default,
-    globModule.default,
-    lsModule.default
+    grepModule,
+    globModule,
+    lsModule
   ];
 }
 
@@ -56,15 +56,17 @@ const handler = async (toolCall) => {
     
     // Get available tools
     const tools = await getAvailableTools();
+    // console.log('getAvailableTools()', tools);
     
     // Log initialization
     console.log('Initializing agent...');
     
     // Create system prompt for the agent
-    const systemPrompt = `You are a helpful assistant with access to various tools. 
+    const systemPrompt = [`You are a helpful assistant with access to various tools. 
 Your task is to help the user with their request: "${prompt}"
 Be thorough and use the tools available to you to find the most relevant information.
-When you're done, provide a clear and concise summary of what you found.`;
+When you're done, provide a clear and concise summary of what you found.`];
+    // console.log('systemPrompt', systemPrompt);
     
     // Track tool usage
     let toolUseCount = 0;
