@@ -19,8 +19,6 @@ A lightweight CLI tool for interacting with Claude AI for coding tasks, implemen
 - `index.js`: CLI entry point
 - `api.js`: Anthropic API interaction
 - `prompts.js`: System prompts
-- `tools.js`: Tool registration
-- `tools/`: Individual tool implementations
 - `persistent_shell.js`: Shell session management
 
 ## Available Tools
@@ -39,7 +37,7 @@ A lightweight CLI tool for interacting with Claude AI for coding tasks, implemen
 bun run index.js
 
 # Run with custom prompt
-bun run index.js -p "create a simple express server"
+bun run index.js -p "count lines of code"
 ```
 
 ## Development Notes
