@@ -89,20 +89,30 @@ export async function query({ userPrompt, tools, systemPrompt, model = SMALL_MOD
       }
 
       if(toolCalls.length > 0) {
-        await Promise.all(toolCalls.map(async (toolCall) => {
-          const toolResult = await tools.find(tool => tool.name === toolCall.name)?.handler?.(toolCall) || '<tool-not-found>';
+        const toolResults = await Promise.all(toolCalls.map(async (toolCall) => {
+          // Assign a unique tool use ID if not already present
+          const toolUseId = toolCall.id;
+          
+          // Clone the toolCall with the unique ID
+          const uniqueToolCall = { ...toolCall, id: toolUseId };
+          
+          const toolResult = await tools.find(tool => tool.name === uniqueToolCall.name)?.handler?.(uniqueToolCall) || '<tool-not-found>';
 
-          const message = {
+          return {
             role: "user",
             content: [{
               type: "tool_result",
-              tool_use_id: toolCall.id,
+              tool_use_id: toolUseId,
               content: JSON.stringify(toolResult)
             }]
-          }
+          };
+        }));
+
+        // Log and push tool results
+        for (const message of toolResults) {
           log(message);
           messages.push(message);
-        }));
+        }
       } else {
         return;
       }

@@ -2,6 +2,10 @@
 
 A lightweight reimplementation of claude-code assistant functionality without any external dependencies. This project provides a simple CLI interface to interact with Claude for coding tasks.
 
+## TODOs
+- [ ] Let user tương tác với `node index.js` khi Agent cần input từ user
+- [x] Sửa lỗi tool_id của AgentTool khi read nhiều files 1 lúc
+
 ## Features
 
 - Interact with Claude through a command-line interface
