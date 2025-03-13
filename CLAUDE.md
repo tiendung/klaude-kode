@@ -34,10 +34,10 @@ A lightweight CLI tool for interacting with Claude AI for coding tasks, implemen
 ## Common Commands
 ```bash
 # Run with default prompt
-bun run index.js
+node index.js
 
 # Run with custom prompt
-bun run index.js -p "count lines of code"
+node index.js -p "count lines of code"
 ```
 
 ## Development Notes

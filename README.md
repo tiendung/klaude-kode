@@ -19,18 +19,14 @@ A lightweight reimplementation of claude-code assistant functionality without an
 ## Prerequisites
 
 - Node.js
-- Bun runtime
 - Anthropic API key
 
 ## Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/claude-code.git
-cd claude-code
-
-# Install dependencies (note: this project has no external dependencies)
-bun install
+git clone https://github.com/tiendung/koding.js
+cd koding.js
 ```
 
 ## Configuration
@@ -45,10 +41,10 @@ export ANTHROPIC_API_KEY=your_api_key_here
 
 ```bash
 # Run with default prompt
-bun run index.js
+node index.js
 
 # Run with custom prompt
-bun run index.js -p "create a simple express server"
+node index.js -p "create a simple express server"
 ```
 
 ## How It Works

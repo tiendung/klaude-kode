@@ -1,5 +1,5 @@
 ```sh
-bun run index.js -p "đếm số dòng code *.js"
+node index.js -p "đếm số dòng code *.js"
 === SENDING PROMPT TO LLM ===
 Messages: [ { "role": "user", "content": [ { "type": "text", "text": "đếm số dòng code *.js" } ] }]
 === END OF PROMPT ===

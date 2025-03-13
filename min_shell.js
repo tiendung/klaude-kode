@@ -18,7 +18,7 @@ if (!gitLocation) {
   // process.exit(1);
 }
 
-const cmd = 'git status';
+const cmd = 'git';
 const HOME = '/' + process.env.HOME.split('/').slice(1, 3).join('/');
 
 const fullCommand = [
@@ -78,10 +78,14 @@ setTimeout(() => {
   } catch (error) {
     console.error('Error reading results:', error);
   }
-}, 600);
+}, 2000);
 
 
-/* Bị lỗi sau:
+/* 
+
+node min_shell.js chạy OK :)
+
+Bun bị lỗi sau (mất nửa ngày với cái lỗi này của bun):
 
 bun min_shell.js 
 Git không được cài đặt hoặc không tìm thấy trong PATH.
