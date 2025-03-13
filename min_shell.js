@@ -3,23 +3,20 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
-const stdoutFile = path.join(os.tmpdir(), 'shell-stdout-' + Date.now());
-const stderrFile = path.join(os.tmpdir(), 'shell-stderr-' + Date.now());
-const statusFile = path.join(os.tmpdir(), 'shell-status-' + Date.now());
+const stdoutFile = path.join(os.tmpdir(), `shell-stdout-${Date.now()}`);
+const stderrFile = path.join(os.tmpdir(), `shell-stderr-${Date.now()}`);
+const statusFile = path.join(os.tmpdir(), `shell-status-${Date.now()}`);
 const debugFile  = path.join(os.tmpdir(), `shell-debug-${Date.now()}`);
 
 // Tạo các file tạm thời để lưu output
-fs.writeFileSync(stdoutFile, '');
-fs.writeFileSync(stderrFile, '');
-fs.writeFileSync(statusFile, '');
-fs.writeFileSync(debugFile, '');
+[stdoutFile, stderrFile, statusFile, debugFile].forEach(f => fs.writeFileSync(f, ''));
 
-const cmd = 'git status';
+const cmd = '/usr/bin/git status';
 const HOME = '/' + process.env.HOME.split('/').slice(1, 3).join('/');
 
 const fullCommand = [
-  `source ${HOME}/.bashrc`,       // Source bashrc to get full environment
-  // `source ${HOME}/.bash_profile`, // Source bash_profile as well
+  `source ${HOME}/.bashrc`,                             // Source bashrc to get full environment
+  `export PATH="${process.env.PATH}:/usr/bin"`,         // Đảm bảo PATH chứa vị trí git
   `echo "Current PATH: $PATH" > ${debugFile}`,          // Ghi log PATH
   `echo "Git location: $(which git)" >> ${debugFile}`,  // Kiểm tra vị trí git
   `${cmd} > ${stdoutFile} 2> ${stderrFile}`,            // Thực thi cmd, đầu ra ghi vào files
@@ -64,9 +61,7 @@ setTimeout(() => {
     console.log('stderr:', stderr);
     
     // Dọn dẹp
-    fs.unlinkSync(stdoutFile);
-    fs.unlinkSync(stderrFile);
-    fs.unlinkSync(statusFile);
+    [stdoutFile, stderrFile, statusFile, debugFile].forEach(f => fs.unlinkSync(f, ''));
     shell.stdin.end();
   } catch (error) {
     console.error('Error reading results:', error);
