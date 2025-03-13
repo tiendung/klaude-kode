@@ -1,3 +1,4 @@
+import * as AgentTool from './agent.js';
 import * as BashTool from './bash.js';
 import * as FileReadTool from './file-read.js';
 import * as FileWriteTool from './file-write.js';
@@ -5,27 +6,16 @@ import * as FileEditTool from './file-edit.js';
 import * as GrepTool from './grep.js';
 import * as GlobTool from './glob.js';
 import * as LSTool from './ls.js';
-import * as AgentTool from './agent.js';
 
-export const tools = [
-  BashTool,
-  FileReadTool,
-  FileWriteTool,
-  FileEditTool,
-  GrepTool,
-  GlobTool,
-  LSTool,
-  AgentTool
-];
+const tools = [AgentTool, BashTool, FileReadTool, FileWriteTool, FileEditTool, GrepTool, GlobTool, LSTool];
 
 import { query } from './api.js';
 import { getSystemPrompt } from './prompts.js';
 
-async function main() { 
-  const systemPrompt = await getSystemPrompt();
+const systemPrompt = await getSystemPrompt();
 
-  const userPrompt = process.argv[2] == '-p' ? process.argv.slice(3).join(' ') : "list the files in the current directory";
-  await query({ userPrompt, tools, systemPrompt }).catch(error => console.error("Error:", error));
-}
+const userPrompt = process.argv[2] == '-p' ? process.argv.slice(3).join(' ') : // all args after the -p flag
+  "list the files in the current directory"; // default user prompt
 
-main();
+// Gọi LLM xử lý userPrompt bằng các tools được cung cấp theo hướng dẫn từ systemPrompt 
+await query({ userPrompt, tools, systemPrompt }).catch(error => console.error("Error:", error));

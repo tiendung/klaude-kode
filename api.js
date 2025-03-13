@@ -15,6 +15,13 @@ export async function api({ messages, tools, systemPrompt, model = SMALL_MODEL, 
     max_tokens: maxTokens
   };
 
+  // In ra toàn bộ prompt trước khi gửi lên LLM
+  console.log("=== SENDING PROMPT TO LLM ===");
+  // console.log("System prompt:", JSON.stringify(systemPrompt, null, 2));
+  console.log("Messages:", JSON.stringify(messages, null, 2));
+  // console.log("Tools:", JSON.stringify(tools, null, 2));
+  console.log("=== END OF PROMPT ===");
+
   const response = await fetch(url, {
     method: "POST",
     headers: headers,
