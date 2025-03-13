@@ -1,83 +1,67 @@
 import { PersistentShell } from './persistent_shell.js';
 import { execSync } from 'child_process';
 
-// Test function to run git command
-async function testGitCommand() {
-  console.log('\nTesting PersistentShell with git command...');
-  
-  // Check if git is available on the system
-  let systemHasGit = false;
-  try {
-    const gitPath = execSync('which git').toString().trim();
-    console.log('System git found at:', gitPath);
-    systemHasGit = true;
-  } catch (error) {
-    console.error('Git not found on system. This is the root cause of error03.md issue.');
-    console.log('You need to install git to resolve this issue.');
-  }
+// Utility function for logging and error handling
+async function runShellTest(testName, commandToTest, expectedSuccessLog = '') {
+  console.log(`\nTesting PersistentShell with ${testName} command...`);
   
   try {
-    // Get the shell instance
     const shell = PersistentShell.getInstance();
     
-    // Check shell environment
-    console.log('\nChecking shell environment...');
-    const pathResult = await shell.exec('echo $PATH');
-    console.log('Shell PATH:', pathResult.stdout.trim());
+    console.log('\nRunning command...');
+    const result = await shell.exec(commandToTest);
+    console.log('Exit code:', result.code);
     
-    // Try to locate git in the shell
-    const whichResult = await shell.exec('which git || echo "not found"');
-    console.log('Shell can find git at:', whichResult.stdout.trim());
-    
-    // Try to execute git command
-    console.log('\nTesting git command...');
-    const gitResult = await shell.exec('git --version');
-    console.log('Exit code:', gitResult.code);
-    
-    if (gitResult.code === 0) {
-      console.log('Success! Git command executed:', gitResult.stdout.trim());
+    if (result.code === 0) {
+      console.log(expectedSuccessLog || 'Command executed successfully:');
+      console.log(result.stdout.trim());
     } else {
-      console.error('Error: Git command failed with stderr:', gitResult.stderr);
-      
-      if (systemHasGit) {
-        console.log('\nSuggested solutions:');
-        console.log('1. Make sure git is installed and in your PATH');
-        console.log('2. Ensure the shell in persistent_shell.js can access git');
-      }
+      console.error(`Error: ${testName} command failed with stderr:`, result.stderr);
     }
     
-    // Clean up
     shell.close();
+    return result;
   } catch (error) {
-    console.error('Test failed with error:', error);
+    console.error(`${testName} test failed with error:`, error);
+    return null;
   }
 }
 
-// Test function to run ls command
-async function testLsCommand() {
-  console.log('\nTesting PersistentShell with ls command...');
-  
+// Check system git availability
+function checkSystemGit() {
   try {
-    // Get the shell instance
-    const shell = PersistentShell.getInstance();
-    
-    // Execute ls command in current directory
-    console.log('\nRunning ls command...');
-    const lsResult = await shell.exec('ls *.md');
-    console.log('Exit code:', lsResult.code);
-    
-    if (lsResult.code === 0) {
-      console.log('Successful ls command:');
-      console.log(lsResult.stdout.trim());
-    } else {
-      console.error('Error: ls command failed with stderr:', lsResult.stderr);
-    }
-    
-    // Clean up
-    shell.close();
+    const gitPath = execSync('which git').toString().trim();
+    console.log('System git found at:', gitPath);
+    return true;
   } catch (error) {
-    console.error('Test failed with error:', error);
+    console.error('Git not found on system. You may need to install git.');
+    return false;
   }
+}
+
+// Specialized tests
+async function testGitCommand() {
+  const systemHasGit = checkSystemGit();
+  
+  const shell = PersistentShell.getInstance();
+  
+  // Additional git-specific environment checks
+  console.log('\nChecking shell environment...');
+  const pathResult = await shell.exec('echo $PATH');
+  console.log('Shell PATH:', pathResult.stdout.trim());
+  
+  const whichResult = await shell.exec('which git || echo "not found"');
+  console.log('Shell can find git at:', whichResult.stdout.trim());
+  
+  const result = await runShellTest('git', 'git --version', 
+    systemHasGit ? undefined : 'Solutions: 1. Install git 2. Update PATH');
+  
+  shell.close();
+  return result;
+}
+
+async function testLsCommand() {
+  return runShellTest('ls', 'ls *.md');
 }
 
 // Run the tests
