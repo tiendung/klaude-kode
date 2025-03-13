@@ -3,12 +3,14 @@ import { readdirSync } from 'fs';
 
 const name = 'LSTool';
 
-const DESCRIPTION =
-  'Lists files and directories in a given path. The path parameter must be an absolute path, not a relative path. You should generally prefer the Glob and Grep tools, if you know which directories to search.';
+const DESCRIPTION =`
+Lists files and directories in a given path. The path parameter must be an absolute path, 
+not a relative path. You should generally prefer the Glob and Grep tools, 
+if you know which directories to search.`;
 
-const MAX_FILES = 1000;
-const MAX_OUTPUT_LENGTH = 30000;
-const TRUNCATED_MESSAGE = `There are more than ${MAX_FILES} files in the repository. Use the LS tool (passing a specific path), Bash tool, and other tools to explore nested directories. The first ${MAX_FILES} files and directories are included below:\n\n`;
+const MAX_FILES = 120;
+const TRUNCATED_MESSAGE = `There are more than ${MAX_FILES} files in the repository.
+Use the LS tool (passing a specific path), Bash tool, and other tools to explore nested directories. The first ${MAX_FILES} files and directories are included below:\n\n`;
 
 const schema = {
   name: name,
