@@ -1,4 +1,6 @@
-export async function api({ messages, tools, systemPrompt, model = "claude-3-5-haiku-latest", maxTokens = 1024 }) {
+import { SMALL_MODEL } from './constants.js';
+
+export async function api({ messages, tools, systemPrompt, model = SMALL_MODEL, maxTokens = 2048 }) {
   const url = "https://api.anthropic.com/v1/messages";
   const headers = {
     "content-type": "application/json",
@@ -53,7 +55,7 @@ function log(block) {
   }
 }
 
-export async function query({ userPrompt, tools, systemPrompt, model = "claude-3-5-haiku-latest", maxTokens = 1024 }) {
+export async function query({ userPrompt, tools, systemPrompt, model = SMALL_MODEL, maxTokens = 1024 }) {
   let messages = [{ role: "user", content: [{ type: "text", text: userPrompt }] }];
 
   const toolSchema = tools.map(tool => ({
