@@ -11,12 +11,9 @@ const FILE_SUFFIXES = {
   STATUS: '-status',
   STDOUT: '-stdout',
   STDERR: '-stderr',
-  CWD: '-cwd',
+     CWD: '-cwd',
 };
-const SHELL_CONFIGS = {
-  '/bin/bash': '.bashrc',
-  '/bin/zsh': '.zshrc',
-};
+const SHELL_CONFIGS = { '/bin/bash': '.bashrc', '/bin/zsh': '.zshrc'};
 
 // Simple function to quote shell commands
 function quoteCommand(cmd) {
@@ -33,10 +30,7 @@ export class PersistentShell {
     this.shell = spawn(this.binShell, ['-l'], {
       stdio: ['pipe', 'pipe', 'pipe'],
       cwd,
-      env: {
-        ...shellEnv,
-        GIT_EDITOR: 'true',
-      },
+      env: { ...shellEnv, GIT_EDITOR: 'true'},
     });
 
     this.cwd = cwd;
@@ -49,23 +43,14 @@ export class PersistentShell {
       if (code) {
         console.error(`Shell exited with code ${code} and signal ${signal}`);
       }
-      for (const file of [
-        this.statusFile,
-        this.stdoutFile,
-        this.stderrFile,
-        this.cwdFile,
-      ]) {
-        if (fs.existsSync(file)) {
-          fs.unlinkSync(file);
-        }
+      for (const file of [this.statusFile, this.stdoutFile, this.stderrFile, this.cwdFile]) {
+        if (fs.existsSync(file)) { fs.unlinkSync(file); } // Xoá tệp nếu tồn tại
       }
       this.isAlive = false;
     });
 
     // Generate unique ID for temp files
-    const id = Math.floor(Math.random() * 0x10000)
-      .toString(16)
-      .padStart(4, '0');
+    const id = Math.floor(Math.random() * 0x10000).toString(16).padStart(4, '0');
 
     this.statusFile = TEMPFILE_PREFIX + id + FILE_SUFFIXES.STATUS;
     this.stdoutFile = TEMPFILE_PREFIX + id + FILE_SUFFIXES.STDOUT;
@@ -100,7 +85,8 @@ export class PersistentShell {
   }
 
   static getInstance() {
-    if (!PersistentShell.instance || !PersistentShell.instance.isAlive) {
+    if ( !PersistentShell.instance 
+      || !PersistentShell.instance.isAlive ) {
       PersistentShell.instance = new PersistentShell(process.cwd());
     }
     return PersistentShell.instance;
@@ -110,10 +96,7 @@ export class PersistentShell {
     const parentPid = this.shell.pid;
     try {
       const childPids = execSync(`pgrep -P ${parentPid}`)
-        .toString()
-        .trim()
-        .split('\n')
-        .filter(Boolean); // Filter out empty strings
+        .toString().trim().split('\n').filter(Boolean); // Filter out empty strings
 
       childPids.forEach(pid => {
         try {
@@ -174,12 +157,7 @@ export class PersistentShell {
     } catch (stderr) {
       // If there's a syntax error, return an error
       const errorStr = typeof stderr === 'string' ? stderr : String(stderr || '');
-      return Promise.resolve({
-        stdout: '',
-        stderr: errorStr,
-        code: 128,
-        interrupted: false,
-      });
+      return Promise.resolve({stdout: '', stderr: errorStr, code: 128, interrupted: false});
     }
 
     const commandTimeout = timeout || DEFAULT_TIMEOUT;
@@ -196,9 +174,7 @@ export class PersistentShell {
       const commandParts = [];
 
       // 1. Execute the main command with redirections
-      commandParts.push(
-        `eval ${quotedCommand} < /dev/null > ${this.stdoutFile} 2> ${this.stderrFile}`
-      );
+      commandParts.push(`eval ${quotedCommand} < /dev/null > ${this.stdoutFile} 2> ${this.stderrFile}`);
 
       // 2. Capture exit code immediately after command execution
       commandParts.push(`EXEC_EXIT_CODE=$?`);
@@ -221,19 +197,14 @@ export class PersistentShell {
             statusFileSize = fs.statSync(this.statusFile).size;
           }
 
-          if (
-            statusFileSize > 0 ||
-            Date.now() - start > commandTimeout ||
-            this.commandInterrupted
+          if ( statusFileSize > 0
+            || Date.now() - start > commandTimeout
+            || this.commandInterrupted
           ) {
             clearInterval(checkCompletion);
-            const stdout = fs.existsSync(this.stdoutFile)
-              ? fs.readFileSync(this.stdoutFile, 'utf8')
-              : '';
-            let stderr = fs.existsSync(this.stderrFile)
-              ? fs.readFileSync(this.stderrFile, 'utf8')
-              : '';
-            let code;
+            const stdout = fs.existsSync(this.stdoutFile) ? fs.readFileSync(this.stdoutFile, 'utf8') : '';
+            let   stderr = fs.existsSync(this.stderrFile) ? fs.readFileSync(this.stderrFile, 'utf8') : '';
+            let     code = null;
             
             if (statusFileSize) {
               code = Number(fs.readFileSync(this.statusFile, 'utf8'));
@@ -244,12 +215,7 @@ export class PersistentShell {
               stderr += (stderr ? '\n' : '') + 'Command execution timed out';
             }
             
-            resolve({
-              stdout,
-              stderr,
-              code,
-              interrupted: this.commandInterrupted,
-            });
+            resolve({ stdout, stderr, code, interrupted: this.commandInterrupted });
           }
         } catch {
           // Ignore file system errors during polling

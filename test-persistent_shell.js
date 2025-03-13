@@ -3,7 +3,7 @@ import { execSync } from 'child_process';
 
 // Test function to run git command
 async function testGitCommand() {
-  console.log('Testing PersistentShell with git command...');
+  console.log('\nTesting PersistentShell with git command...');
   
   // Check if git is available on the system
   let systemHasGit = false;
@@ -45,7 +45,7 @@ async function testGitCommand() {
         console.log('2. Ensure the shell in persistent_shell.js can access git');
       }
     }
-        
+    
     // Clean up
     shell.close();
   } catch (error) {
@@ -53,5 +53,33 @@ async function testGitCommand() {
   }
 }
 
-// Run the test
-testGitCommand();
+// Test function to run ls command
+async function testLsCommand() {
+  console.log('\nTesting PersistentShell with ls command...');
+  
+  try {
+    // Get the shell instance
+    const shell = PersistentShell.getInstance();
+    
+    // Execute ls command in current directory
+    console.log('\nRunning ls command...');
+    const lsResult = await shell.exec('ls *.md');
+    console.log('Exit code:', lsResult.code);
+    
+    if (lsResult.code === 0) {
+      console.log('Successful ls command:');
+      console.log(lsResult.stdout.trim());
+    } else {
+      console.error('Error: ls command failed with stderr:', lsResult.stderr);
+    }
+    
+    // Clean up
+    shell.close();
+  } catch (error) {
+    console.error('Test failed with error:', error);
+  }
+}
+
+// Run the tests
+await testLsCommand();
+await testGitCommand();
