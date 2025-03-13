@@ -13,7 +13,11 @@ const FILE_SUFFIXES = {
   STDERR: '-stderr',
      CWD: '-cwd',
 };
-const SHELL_CONFIGS = { '/bin/bash': '.bashrc', '/bin/zsh': '.zshrc'};
+const SHELL_CONFIGS = { 
+      '/bin/bash': '.bashrc', 
+  '/usr/bin/bash': '.bashrc', 
+       '/bin/zsh': '.zshrc',
+};
 
 // Simple function to quote shell commands
 function quoteCommand(cmd) {
@@ -226,7 +230,8 @@ export class PersistentShell {
 
   sendToShell(command) {
     try {
-      this.shell.stdin.write(command + '\n');
+      this.shell.stdin.write(command + '\n'); // ghi cmd ra shell rồi \n = Enter (thực thi)
+      console.log(`sendToShell: \`${command}\``)
     } catch (error) {
       console.error(`Error in sendToShell: ${error}`);
       throw error;
