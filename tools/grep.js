@@ -1,4 +1,4 @@
-import { exec } from 'child_process';
+import { execSync } from 'child_process';
 
 const name = 'GrepTool';
 
@@ -39,58 +39,30 @@ const schema = {
 };
 
 const handler = async (toolCall) => {
-  const { pattern, path = '.', include } = toolCall.input;
-  let stdout = '';
-  let stderr = '';
+  const { pattern, path: searchPath = '.', include } = toolCall.input;
   
   try {
-    // Build ripgrep command
-    let command = `rg -li "${pattern}" ${path}`;
+    // Use find and grep commands for searching
+    let grepCmd = `find ${searchPath} -type f`;
+    
     if (include) {
-      command += ` --glob "${include}"`;
+      grepCmd += ` -name "${include}"`;
     }
     
-    // Execute command
-    const result = await new Promise((resolve, reject) => {
-      const childProcess = exec(command, {
-        maxBuffer: 10 * 1024 * 1024, // 10MB buffer
-      });
-      
-      let stdoutData = '';
-      let stderrData = '';
-      
-      childProcess.stdout.on('data', (data) => {
-        stdoutData += data;
-      });
-      
-      childProcess.stderr.on('data', (data) => {
-        stderrData += data;
-      });
-      
-      childProcess.on('close', (code) => {
-        resolve({
-          stdout: stdoutData,
-          stderr: stderrData,
-          code
-        });
-      });
-      
-      childProcess.on('error', (err) => {
-        reject(err);
-      });
+    grepCmd += ` -exec grep -l "${pattern}" {} \\;`;
+    
+    console.log(`Searching with: ${grepCmd}`);
+    
+    // Execute the command
+    const result = execSync(grepCmd, {
+      encoding: 'utf8',
+      maxBuffer: 10 * 1024 * 1024, // 10MB
     });
     
-    stdout = (result.stdout || '').trim();
-    stderr = (result.stderr || '').trim();
-    
-    if (result.code !== 0 && stderr) {
-      return {
-        error: stderr
-      };
-    }
+    // Process the results
+    const files = result.trim().split('\n').filter(Boolean);
     
     // Process results
-    const files = stdout.split('\n').filter(Boolean);
     const numFiles = files.length;
     
     // Sort files by modification time (would need fs.stat in a real implementation)

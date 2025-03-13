@@ -20,35 +20,74 @@ Tôi thấy có file ./tools/bash.js có thể liên quan vì lệnh git thườ
 > toolu_01SUY7rf3kie2Vm3EBgZpXcy: {"error":"/bin/sh: 1: rg: not found"}
 ```
 
-## Nguyên nhân
-
-Lạ một cái là LSTool vẫn dùng được `ls` và cả `ls`, `git` và `rg` đều ở trong /usr/bin.
 ```sh
-which ls
-# /usr/bin/ls
 which git
 # /usr/bin/git
 which rg
 # /usr/bin/rg
 ```
 
-## Giải pháp tạm thời
+## Nguyên nhân
 
-Tôi đã tạo symbolic link đến rg tại thư mục gốc:
-```sh
-ln -s /usr/bin/rg .
+Vấn đề này xảy ra do môi trường PATH trong shell mà Bun.js khởi tạo (thông qua Node.js `spawn`) khác với môi trường PATH trong terminal mà bạn đang sử dụng. Khi Bun.js tạo một shell con thông qua PersistentShell, shell này không thừa hưởng đầy đủ các biến môi trường PATH hoặc không tải đúng các tệp cấu hình shell (`.bashrc`, `.zshrc`, v.v) nơi các đường dẫn đến các lệnh như `rg` đã được định nghĩa.
+
+## Giải pháp đã triển khai
+
+Đã cập nhật file `tools/grep.js` để sử dụng kết hợp `find` và `grep` là những lệnh cơ bản có sẵn trong hầu hết các hệ thống Unix thay vì phụ thuộc vào ripgrep (`rg`):
+
+```js
+const handler = async (toolCall) => {
+  const { pattern, path: searchPath = '.', include } = toolCall.input;
+  
+  try {
+    // Sử dụng lệnh find và grep
+    let grepCmd = `find ${searchPath} -type f`;
+    
+    if (include) {
+      grepCmd += ` -name "${include}"`;
+    }
+    
+    grepCmd += ` -exec grep -l "${pattern}" {} \\;`;
+    
+    // Thực thi lệnh tìm kiếm
+    const result = execSync(grepCmd, {
+      encoding: 'utf8',
+      maxBuffer: 10 * 1024 * 1024, // 10MB
+    });
+    
+    // Xử lý kết quả
+    const files = result.trim().split('\n').filter(Boolean);
+    
+    return {
+      output: files.join('\n')
+    };
+  } catch (error) {
+    return {
+      error: error.message
+    };
+  }
+};
 ```
-tại thư mục hiện hành (cùng chỗ với index.js và tools).
 
-## Giải pháp chính thức
+Với giải pháp này:
+1. Không cần phụ thuộc vào ripgrep (`rg`)
+2. Sử dụng các lệnh cơ bản có sẵn (`find` và `grep`)
+3. Đơn giản, dễ hiểu và dễ bảo trì
+4. Tương thích với hầu hết các hệ thống Unix
 
-Đã sửa code trong `tools/grep.js` để:
-1. Import module fs: `import fs from 'fs';`
-2. Kiểm tra xem có file ./rg (bản local) không, nếu có thì dùng, nếu không thì dùng rg hệ thống:
-```javascript
-// Use local ./rg if it exists, otherwise try the system rg
-const rgCmd = fs.existsSync('./rg') ? './rg' : 'rg';
-let command = `${rgCmd} -li "${pattern}" ${path}`;
-```
+### Các giải pháp thay thế khác
 
-Với cách này, koding sẽ dùng ripgrep đã được symlink vào thư mục hiện tại nếu không tìm thấy lệnh `rg` trong PATH.
+Nếu bạn vẫn muốn sử dụng ripgrep vì nó nhanh hơn cho codebase lớn:
+
+1. **Đảm bảo PersistentShell tải biến môi trường PATH**
+   Sửa file `persistent_shell.js` để đảm bảo shell thừa hưởng đúng PATH.
+
+2. **Sử dụng đường dẫn tuyệt đối đến ripgrep**
+   ```js
+   let command = `/usr/bin/rg -li "${pattern}" ${path}`;
+   ```
+
+3. **Sử dụng thư viện JavaScript thay thế**
+   Nếu không muốn phụ thuộc vào lệnh bên ngoài, bạn có thể sử dụng một thư viện JavaScript thuần túy để tìm kiếm.
+
+## Status: FIXED

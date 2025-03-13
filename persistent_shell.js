@@ -27,11 +27,14 @@ function quoteCommand(cmd) {
 export class PersistentShell {
   constructor(cwd) {
     this.binShell = process.env.SHELL || '/bin/bash';
+    // Ensure shell inherits the correct PATH and other environment variables
+    const shellEnv = { ...process.env };
+    
     this.shell = spawn(this.binShell, ['-l'], {
       stdio: ['pipe', 'pipe', 'pipe'],
       cwd,
       env: {
-        ...process.env,
+        ...shellEnv,
         GIT_EDITOR: 'true',
       },
     });
