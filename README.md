@@ -39,7 +39,9 @@ export ANTHROPIC_API_KEY=your_api_key_here
 ## Usage
 
 ```bash
-node index.js
+node index.js 	 # interactive mode with small model (haiku 3.5)
+node index.js -l # interactive mode with large model (sonnet 3.7)
+node index.js -p "commit changes" # run and terminate
 ```
 
 ## How It Works

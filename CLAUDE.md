@@ -33,11 +33,14 @@ A lightweight CLI tool for interacting with Claude AI for coding tasks, implemen
 
 ## Common Commands
 ```bash
-# Run in interactive mode
+# Run in interactive mode with small model (haiku 3.5)
 node index.js
 
-# Run with custom prompt
-node index.js -p "count lines of code"
+# Run in interactive mode with large model (sonnet 3.7)
+node index.js -l
+
+# Run with custom prompt and terminate
+node index.js -p "commit changes"
 ```
 
 ## Development Notes
