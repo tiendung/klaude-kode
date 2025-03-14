@@ -13,8 +13,7 @@ export async function api({ messages, tools, systemPrompt, model, maxTokens = 10
 
 
   if (model == LARGE_MODEL) { // Claude 3.7 Sonnet
-    // https://www.anthropic.com/news/token-saving-updates, text-editor-tool
-    // cache-aware rate limits, simpler prompt caching, and token-efficient tool use
+    // https://www.anthropic.com/news/token-saving-updates
     // messages.at(-1).cache_control = {type: "ephemeral"}; // tại sao lại chưa work?
     headers["anthropic-beta"] = "token-efficient-tools-2025-02-19";
   }
@@ -23,12 +22,6 @@ export async function api({ messages, tools, systemPrompt, model, maxTokens = 10
   system.at(-1).cache_control = {type: "ephemeral"};
   tools.at(-1).cache_control = {type: "ephemeral"};
 
-  if (false) {
-    console.log(`=== SENDING PROMPT TO ${model} ===`);
-    console.log("Messages:", JSON.stringify(messages, null, 2));
-    console.log("Tools:", JSON.stringify(tools, null, 2));
-    console.log("=== END OF PROMPT ===");
-  }
   const body = JSON.stringify({ system, model, messages, tools, max_tokens: maxTokens });
   const response = await fetch(url, {method: "POST", headers, body});
 
@@ -40,33 +33,19 @@ export async function api({ messages, tools, systemPrompt, model, maxTokens = 10
 }
 
 
-function log(block) {
-
-    if(typeof block === "string") {
-        console.log(block);
-
-    } else if(Array.isArray(block)) {
-        for(const item of block) { log(item); }
-
-    } else if(typeof block === "object") {
-        if(block.role) {
-            console.log(`\x1b[36m> ${block.role}\x1b[0m`);
-            log(block.content);
-            return
-
-        } else if (block.text) {
-            console.log(`${block.text.trim()}\n`);
-
-        } else {
-            if(block.type === "tool_use") {
-                console.log(`\x1b[32m> ${block.name}\x1b[0m: ${JSON.stringify(block.input)}`);
-
-            } else if(block.type === "tool_result") {
-                console.log(`\x1b[34m> ${block.tool_use_id}\x1b[0m: ${block.content}`);
-            }
-        }
+const log = (block) => {
+  const logTypes = {
+    string: (b) => console.log(b),
+    object: (b) => {
+      if (Array.isArray(b)) for(const x of block) log(x); 
+      else if (b.role) { console.log(`\x1b[36m> ${b.role}\x1b[0m`); log(b.content); } 
+      else if (b.text) console.log(`${b.text.trim()}\n`);
+      else if (b.type === "tool_use") console.log(`\x1b[32m> ${b.name}\x1b[0m: ${JSON.stringify(b.input)}`);
+      else if (b.type === "tool_result") console.log(`\x1b[34m> ${b.tool_use_id}\x1b[0m: ${b.content}`);
     }
-}
+  };
+  (logTypes[typeof block] || (b => console.log(b)))(block);
+};
 
 
 export async function query({ userPrompt, tools, systemPrompt, shouldExit = false,
