@@ -11,23 +11,12 @@ import { statSync } from 'fs';
 
 const name = "BashTool";
 const BANNED_COMMANDS = [
-  'alias',
-  'curl',
-  'curlie',
-  'wget',
-  'axel',
-  'aria2c',
-  'nc',
-  'telnet',
-  'lynx',
-  'w3m',
-  'links',
-  'httpie',
-  'xh',
-  'http-prompt',
-  'chrome',
-  'firefox',
-  'safari'
+  'alias',    'curl',         'curlie',
+  'wget',     'axel',         'aria2c',
+  'nc',       'telnet',       'lynx',
+  'w3m',      'links',        'httpie',
+  'xh',       'http-prompt',  'chrome',
+  'firefox',  'safari',
 ];
 
 const MAX_OUTPUT_LENGTH = 30000
@@ -157,19 +146,12 @@ Important Notes:
 `
 
 const schema = {
-  name: name,
-  description: DESCRIPTION,
+  name: name, description: DESCRIPTION,
   parameters: {
     type: "object",
     properties: {
-      command: {
-        type: "string",
-        description: "The bash command to run"
-      }, 
-      timeout: {
-        type: "number",
-        description: "Optional timeout in milliseconds (max 600000)"
-      }
+      command: { type: "string", description: "The bash command to run" }, 
+      timeout: { type: "number", description: "Optional timeout in milliseconds (max 600000)" }
     }
   }
 }
@@ -182,10 +164,8 @@ const getCommandFilePaths = (command, stdout) => {
   const commandPaths = command.match(/(?:^|\s)(['"]?)([\/\w\.-]+\.\w+)\1(?=\s|$)/g);
   if (commandPaths) {
     commandPaths.forEach(path => {
-      const cleanPath = path.trim().replace(/^['"]|['"]$/g, '');
-      if (cleanPath.includes('.') && !cleanPath.startsWith('-')) {
-        paths.push(cleanPath);
-      }
+      const p = path.trim().replace(/^['"]|['"]$/g, ''); // cleanPath
+      if (p.includes('.') && !p.startsWith('-')) { paths.push(p); }
     });
   }
   
@@ -193,10 +173,8 @@ const getCommandFilePaths = (command, stdout) => {
   const stdoutPaths = stdout.match(/(?:^|\s)([\/\w\.-]+\.\w+)(?=\s|$)/g);
   if (stdoutPaths) {
     stdoutPaths.forEach(path => {
-      const cleanPath = path.trim();
-      if (cleanPath.includes('.') && !cleanPath.startsWith('-')) {
-        paths.push(cleanPath);
-      }
+      const p = path.trim(); // cleanPath
+      if (p.includes('.') && !p.startsWith('-')) { paths.push(p); }
     });
   }
   
@@ -227,45 +205,30 @@ const handler = async (toolCall) => {
   
   try {
     // Execute command using PersistentShell
-    const result = await PersistentShell.getInstance().exec(
-      command,
-      toolCall.abortController?.signal,
-      timeout
-    );
+    const result = await PersistentShell.getInstance().
+      exec(command, toolCall.abortController?.signal, timeout);
     
     stdout += (result.stdout || '').trim() + '\n';
     stderr += (result.stderr || '').trim() + '\n';
     
-    if (result.code !== 0) {
-      stderr += `Exit code ${result.code}`;
-    }
+    if (result.code !== 0) { stderr += `Exit code ${result.code}`; }
     
     // Update read timestamps for any files referenced by the command
     if (toolCall.readFileTimestamps) {
       getCommandFilePaths(command, stdout).forEach(filePath => {
-        const fullFilePath = isAbsolute(filePath)
-          ? filePath
-          : resolve(process.cwd(), filePath);
-
-        // Try/catch in case the file doesn't exist
-        try {
+        const fullFilePath = isAbsolute(filePath) ? filePath : resolve(process.cwd(), filePath);
+        try { // in case the file doesn't exist
           toolCall.readFileTimestamps[fullFilePath] = statSync(fullFilePath).mtimeMs;
-        } catch (e) {
-          console.error(e);
-        }
+        } catch (e) { console.error(e); }
       });
     }
     
-    const { totalLines: stdoutLines, truncatedContent: stdoutContent } =
-      formatOutput(stdout.trim());
-    const { totalLines: stderrLines, truncatedContent: stderrContent } =
-      formatOutput(stderr.trim());
+    const { totalLines: stdoutLines, truncatedContent: stdoutContent } = formatOutput(stdout.trim());
+    const { totalLines: stderrLines, truncatedContent: stderrContent } = formatOutput(stderr.trim());
     
     const data = {
-      stdout: stdoutContent,
-      stdoutLines,
-      stderr: stderrContent,
-      stderrLines,
+      stdout: stdoutContent, stdoutLines,
+      stderr: stderrContent, stderrLines,
       interrupted: result.interrupted || false
     };
     
