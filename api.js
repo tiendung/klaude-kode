@@ -69,7 +69,7 @@ function log(block) {
 }
 
 
-export async function query({ userPrompt, tools, systemPrompt, 
+export async function query({ userPrompt, tools, systemPrompt, shouldExit = false,
   model = SMALL_MODEL, maxTokens = 1024, acceptUserInput = false }) {
 
   let messages = [];
@@ -103,9 +103,8 @@ export async function query({ userPrompt, tools, systemPrompt,
     const toolCalls = apiResponse.content?.filter(block => block.type === 'tool_use') || [];
 
     if (toolCalls.length === 0) { 
-      if (!acceptUserInput) { return; } // thoát khỏi main loop khi không còn tool calls 
-      // Tiếp tục đối thoại với LLM
-      userInput();
+      if (!acceptUserInput) if (shouldExit) process.exit(); else return; // thoát khỏi main loop khi không còn tool calls 
+      else userInput(); // Tiếp tục đối thoại với LLM
 
     } else {
 
