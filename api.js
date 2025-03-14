@@ -2,7 +2,7 @@ import { SMALL_MODEL, LARGE_MODEL } from './constants.js';
 import promptSync from 'prompt-sync';
 const prompt = promptSync();
 
-export async function api({ messages, tools, systemPrompt, model, maxTokens = 2048 }) {
+export async function api({ messages, tools, systemPrompt, model, maxTokens = 1024 }) {
 
   const url = "https://api.anthropic.com/v1/messages";
   const headers = {
@@ -12,23 +12,24 @@ export async function api({ messages, tools, systemPrompt, model, maxTokens = 20
   };
 
 
-  // https://www.anthropic.com/news/token-saving-updates
-  // Claude 3.7 Sonnet. These include: cache-aware rate limits, 
-  // simpler prompt caching, and token-efficient tool use
-  if (model == LARGE_MODEL) {
-    // messages.at(-1).cache_control = {type: "ephemeral"};
+  if (model == LARGE_MODEL) { // Claude 3.7 Sonnet
+    // https://www.anthropic.com/news/token-saving-updates, text-editor-tool
+    // cache-aware rate limits, simpler prompt caching, and token-efficient tool use
+    // messages.at(-1).cache_control = {type: "ephemeral"}; // tại sao lại chưa work?
     headers["anthropic-beta"] = "token-efficient-tools-2025-02-19";
   }
 
   let system = systemPrompt.map(prompt => ({ type: "text", text: prompt }));
   system.at(-1).cache_control = {type: "ephemeral"};
+  tools.at(-1).cache_control = {type: "ephemeral"};
 
+  if (false) {
+    console.log(`=== SENDING PROMPT TO ${model} ===`);
+    console.log("Messages:", JSON.stringify(messages, null, 2));
+    console.log("Tools:", JSON.stringify(tools, null, 2));
+    console.log("=== END OF PROMPT ===");
+  }
   const body = JSON.stringify({ system, model, messages, tools, max_tokens: maxTokens });
-
-  console.log(`=== SENDING PROMPT TO ${model} ===`);
-  console.log("Messages:", JSON.stringify(messages, null, 2));
-  console.log("=== END OF PROMPT ===");
-
   const response = await fetch(url, {method: "POST", headers, body});
 
   if (!response.ok) {
@@ -40,6 +41,7 @@ export async function api({ messages, tools, systemPrompt, model, maxTokens = 20
 
 
 function log(block) {
+
     if(typeof block === "string") {
         console.log(block);
 
@@ -50,7 +52,6 @@ function log(block) {
         if(block.role) {
             console.log(`\x1b[36m> ${block.role}\x1b[0m`);
             log(block.content);
-            console.log("\n");
             return
 
         } else if (block.text) {
@@ -89,11 +90,14 @@ export async function query({ userPrompt, tools, systemPrompt,
   
   while (true) { // tool use main loop
     const apiResponse = await api({ messages, tools: toolSchema, systemPrompt, model, maxTokens });
+    // console.log("apiResponse:", JSON.stringify(apiResponse, null, 2));
     const assistantMessage = { role: apiResponse.role, content: apiResponse.content };
-    // const assistantMessage = { role: "assistant", content: "hello" }; // dump message
-
     messages.push(assistantMessage);
     log(assistantMessage);
+
+    let u = apiResponse.usage;
+    u = apiResponse.model+` (in: ${u.input_tokens}, out: ${u.output_tokens}, cache: ${u.cache_read_input_tokens})`;
+    console.log(`\x1b[35m${u}\x1b[0m`);
 
     // Extract tool calls and wait for all results before continuing
     const toolCalls = apiResponse.content?.filter(block => block.type === 'tool_use') || [];
