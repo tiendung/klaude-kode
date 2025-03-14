@@ -1,5 +1,6 @@
 import { query } from './api.js';
-import { LARGE_MODEL } from './constants.js';
+import { LARGE_MODEL, SMALL_MODEL } from './constants.js';
+import { getCwd, isGit } from './persistent_shell.js';
 
 const name = 'AgentTool';
 
@@ -46,42 +47,69 @@ const schema = {
 };
 
 const handler = async (toolCall) => {
-  console.log('Initializing agent...');  
-  const { userPrompt } = toolCall.input;
+  console.log('\x1b[32mInitializing agent...\x1b[0m', toolCall.input);  
+  const { prompt } = toolCall.input;
   const startTime = Date.now();
   const tools = await getAvailableTools();
-  const systemPrompt = [`You are a helpful assistant with access to various tools. 
-Your task is to help the user with their request: "${userPrompt}"
-Be thorough and use the tools available to you to find the most relevant information.
-When you're done, provide a clear and concise summary of what you found.`];
-  try {
-    // Call the LLM with the prompt and tools
-    const result = await query({
-      userPrompt, tools, systemPrompt,
-      model: LARGE_MODEL, maxTokens: 2048,
-    });
-    
-    let toolUseCount = 0;
-    if (result && result.content) {
-      for (const block of result.content) {
-        if (block.type === 'text') { finalResponse += block.text; }
-        if (block.type === 'tool_use') { toolUseCount++; }
-      }
+  let systemPrompt = getAgentPrompt();
+  const result = await query({ userPrompt: prompt, tools, systemPrompt, model: SMALL_MODEL, maxTokens: 1024 });
+
+  let toolUseCount = 0;
+  let finalResponse = '';
+  if (result && result.content) {
+    for (const block of result.content) {
+      if (block.type === 'text') { finalResponse += block.text; }
+      if (block.type === 'tool_use') { toolUseCount++; }
     }
-    
-    // Estimate tokens (in a real implementation, this would come from the API response)
-    const totalTokens = math.round(finalResponse.split(/\s+/).length * 1.3);
-    const durationMs = Date.now() - startTime;
-    const p = toolUseCount === 1 ? '' : 's';
-    const s = (durationMs / 1000).toFixed(1);
-    return {
-      summary: `Done (${toolUseCount} tool use${p} · ${totalTokens} tokens · ${s}s)`,
-      output: finalResponse || "The agent completed the task but didn't provide a text response.",
-    };
-  } catch (error) {
-    console.error('Agent error:', error);
-    return { error: `Error running agent: ${error.message}` };
   }
+  console.log("\x1b[32mAgent query finalResponse: \x1b[0m", finalResponse);
+  
+  // Estimate tokens (in a real implementation, this would come from the API response)
+  const totalTokens = Math.round(finalResponse.split(/\s+/).length * 1.3);
+  const durationMs = Date.now() - startTime;
+  const p = toolUseCount === 1 ? '' : 's';
+  const s = (durationMs / 1000).toFixed(1);
+  return {
+    summary: `Done (${toolUseCount} tool use${p} · ${totalTokens} tokens · ${s}s)`,
+    output: finalResponse || "The agent completed the task but didn't provide a text response.",
+  };
 };
+
+
+function getAgentPrompt() {
+  return [
+`You are an coding agent. Given the user's prompt,
+you should use the tools available to you to answer the user's question.
+
+
+Notes:
+
+1. IMPORTANT: You should be concise, direct, and to the point, since your responses 
+   will be displayed on a command line interface. Answer the user's question directly, 
+   without elaboration, explanation, or details. One word answers are best.
+   Avoid introductions, conclusions, and explanations.
+
+   You MUST avoid text before/after your response, such as
+   "The answer is <answer>.", 
+   "Here is the content of the file..." or 
+   "Based on the information provided, the answer is..." or 
+   "Here is what I will do next...".
+
+2. When relevant, share file names and code snippets relevant to the query.
+
+3. Any file paths you return in your final response MUST be absolute. DO NOT use relative paths.`,
+    `${getEnvInfo()}`,
+  ]
+}
+
+function getEnvInfo() {
+  return `Here is useful information about the environment you are running in:
+<env>
+Working directory: ${getCwd()}
+Is directory a git repo: ${isGit ? 'Yes' : 'No'}
+Platform: ${process.platform}
+Today's date: ${new Date().toLocaleDateString()}
+</env>`
+}
 
 export { name, schema, handler };

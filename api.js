@@ -95,15 +95,16 @@ export async function query({ userPrompt, tools, systemPrompt, shouldExit = fals
     messages.push(assistantMessage);
     log(assistantMessage);
 
+    // model name and token usage log
     let u = apiResponse.usage;
-    u = apiResponse.model+` (in: ${u.input_tokens}, out: ${u.output_tokens}, cache: ${u.cache_read_input_tokens})`;
+    u = apiResponse.model+` (i: ${u.input_tokens}, o: ${u.output_tokens}, c: ${u.cache_read_input_tokens})`;
     console.log(`\x1b[35m${u}\x1b[0m`);
 
     // Extract tool calls and wait for all results before continuing
     const toolCalls = apiResponse.content?.filter(block => block.type === 'tool_use') || [];
 
     if (toolCalls.length === 0) { 
-      if (!acceptUserInput) if (shouldExit) process.exit(); else return; // thoát khỏi main loop khi không còn tool calls 
+      if (!acceptUserInput) if (shouldExit) process.exit(); else return apiResponse;
       else userInput(); // Tiếp tục đối thoại với LLM
 
     } else {
