@@ -63,33 +63,28 @@ export async function query({ userPrompt, tools, systemPrompt, model = SMALL_MOD
     input_schema: tool.schema.input_schema || tool.schema.parameters,
   }));
   
-  while (true) {
-    try {
-      const apiResponse = await api({ messages, tools: toolSchema, systemPrompt, model, maxTokens });
-      const assistantMessage = { role: apiResponse.role, content: apiResponse.content };
+  while (true) { // the main loop
+    // try {
+    const apiResponse = await api({ messages, tools: toolSchema, systemPrompt, model, maxTokens });
+    const assistantMessage = { role: apiResponse.role, content: apiResponse.content };
 
-      messages.push(assistantMessage);
-      log(assistantMessage);
+    messages.push(assistantMessage);
+    log(assistantMessage);
 
-      // Extract tool calls and wait for all results before continuing
-      const toolCalls = apiResponse.content?.filter(block => block.type === 'tool_use') || [];
-      if (toolCalls.length === 0) { return; }
+    // Extract tool calls and wait for all results before continuing
+    const toolCalls = apiResponse.content?.filter(block => block.type === 'tool_use') || [];
 
-      // Process all tool calls and collect results
-      const toolResults = await Promise.all(toolCalls.map(async (toolCall) => {
-        const tool = tools.find(t => t.name === toolCall.name);
-        const result = JSON.stringify( tool ? await tool.handler(toolCall) : '<tool-not-found>' );
-        return {
-          role: "user",
-          content: [{ type: "tool_result", tool_use_id: toolCall.id, content: result }]
-        };
-      }));
-
-      // Add all results to messages before continuing
-      for (const result of toolResults) { log(result); messages.push(result); }
-    } catch (error) {
-      console.error("Error:", error.message);
-      break;
+    if (toolCalls.length === 0) { 
+      return; // thoát khỏi main loop khi không còn tool calls 
+      // TODO: handle user input để tiếp tục đối thoại ở đây ??
     }
+
+    await Promise.all(toolCalls.map(async (toolCall) => {
+      const tool = tools.find(t => t.name === toolCall.name);
+      const c = JSON.stringify( tool ? await tool.handler(toolCall) : '<tool-not-found>' );
+      const r = { role: "user", content: [{ type: "tool_result", tool_use_id: toolCall.id, content: c }] };
+      log(r); messages.push(r);
+    }));
+    // } catch (error) { console.error("Error:", error.message); return; }
   }
 }
