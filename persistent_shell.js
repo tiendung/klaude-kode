@@ -167,13 +167,10 @@ export class PersistentShell {
       commandParts.push(`eval ${quotedCommand} < /dev/null > ${this.stdoutFile} 2> ${this.stderrFile}`);
 
       // 2. Capture exit code immediately after command execution
-      commandParts.push(`EXEC_EXIT_CODE=$?`);
+      commandParts.push(`echo $? > ${this.statusFile}`);
 
       // 3. Update CWD file
       commandParts.push(`pwd > ${this.cwdFile}`);
-
-      // 4. Write the preserved exit code to status file
-      commandParts.push(`echo $EXEC_EXIT_CODE > ${this.statusFile}`);
 
       // Send the combined commands as a single operation
       this.sendToShell(commandParts.join('\n'));

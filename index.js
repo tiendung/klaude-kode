@@ -15,8 +15,9 @@ import { LARGE_MODEL, SMALL_MODEL } from './constants.js';
 
 const systemPrompt = await getSystemPrompt();
 const model = ( process.argv[2] === '-l' ) ? LARGE_MODEL : SMALL_MODEL;
-const acceptUserInput = !( process.argv[2] === '-p' );
-const userPrompt = acceptUserInput ? null : process.argv.slice(3).join(' ');
+const getPrompt = process.argv[2] === '-p';
+const acceptUserInput = true;
+const userPrompt = getPrompt ? process.argv.slice(3).join(' ') : null;
 
 // Gọi LLM xử lý userPrompt bằng các tools được cung cấp theo hướng dẫn từ systemPrompt
 await query({ userPrompt, tools, systemPrompt, acceptUserInput,  model, shouldExit: true }).
