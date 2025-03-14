@@ -11,11 +11,13 @@ const tools = [AgentTool, BashTool, FileReadTool, FileWriteTool, FileEditTool, G
 
 import { query } from './api.js';
 import { getSystemPrompt } from './prompts.js';
+import { LARGE_MODEL, SMALL_MODEL } from './constants.js';
 
 const systemPrompt = await getSystemPrompt();
-
-const userPrompt = process.argv[2] == '-p' ? process.argv.slice(3).join(' ') : "summ ./docs/";
+const model = ( process.argv[2] === '-l' ) ? LARGE_MODEL : SMALL_MODEL;
+const acceptUserInput = !( process.argv[2] === '-p' );
+const userPrompt = acceptUserInput ? null : process.argv.slice(3).join(' ');
 
 // Gọi LLM xử lý userPrompt bằng các tools được cung cấp theo hướng dẫn từ systemPrompt
-await query({ userPrompt, tools, systemPrompt, acceptUserInput: true }).
+await query({ userPrompt, tools, systemPrompt, acceptUserInput,  model }).
 	catch(error => console.error("Error:", error));

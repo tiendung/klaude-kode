@@ -1,22 +1,33 @@
-import { SMALL_MODEL } from './constants.js';
+import { SMALL_MODEL, LARGE_MODEL } from './constants.js';
 import promptSync from 'prompt-sync';
 const prompt = promptSync();
 
-export async function api({ messages, tools, systemPrompt, model = SMALL_MODEL, maxTokens = 2048 }) {
+export async function api({ messages, tools, systemPrompt, model, maxTokens = 2048 }) {
+
   const url = "https://api.anthropic.com/v1/messages";
   const headers = {
     "content-type": "application/json",
     "x-api-key": process.env.ANTHROPIC_API_KEY,
-    "anthropic-version": "2023-06-01"
+    "anthropic-version": "2023-06-01",
   };
-  const body = JSON.stringify({
-    system: systemPrompt.map(prompt => ({ type: "text", text: prompt })),
-    model, messages, tools, max_tokens: maxTokens,
-  });
 
-  // console.log(`=== SENDING PROMPT TO ${model} ===`);
-  // console.log("Messages:", JSON.stringify(messages, null, 2));
-  // console.log("=== END OF PROMPT ===");
+
+  // https://www.anthropic.com/news/token-saving-updates
+  // Claude 3.7 Sonnet. These include: cache-aware rate limits, 
+  // simpler prompt caching, and token-efficient tool use
+  if (model == LARGE_MODEL) {
+    // messages.at(-1).cache_control = {type: "ephemeral"};
+    headers["anthropic-beta"] = "token-efficient-tools-2025-02-19";
+  }
+
+  let system = systemPrompt.map(prompt => ({ type: "text", text: prompt }));
+  system.at(-1).cache_control = {type: "ephemeral"};
+
+  const body = JSON.stringify({ system, model, messages, tools, max_tokens: maxTokens });
+
+  console.log(`=== SENDING PROMPT TO ${model} ===`);
+  console.log("Messages:", JSON.stringify(messages, null, 2));
+  console.log("=== END OF PROMPT ===");
 
   const response = await fetch(url, {method: "POST", headers, body});
 
@@ -43,7 +54,7 @@ function log(block) {
             return
 
         } else if (block.text) {
-            console.log(`${block.text}\n\n`);
+            console.log(`${block.text.trim()}\n`);
 
         } else {
             if(block.type === "tool_use") {
@@ -58,8 +69,18 @@ function log(block) {
 
 
 export async function query({ userPrompt, tools, systemPrompt, 
-      model = SMALL_MODEL, maxTokens = 1024, acceptUserInput = false }) {
-  let messages = [{ role: "user", content: [{ type: "text", text: userPrompt }] }];
+  model = SMALL_MODEL, maxTokens = 1024, acceptUserInput = false }) {
+
+  let messages = [];
+
+    function userInput() {
+      const input = prompt('\x1b[32muser: \x1b[0m').trim();
+      messages.push({ role: "user", content: input });
+      if (input === "q") { process.exit(); } // [q]uit program
+    }
+
+  if (acceptUserInput && userPrompt === null) userInput();
+  else messages.push({ role: "user", content: [{ type: "text", text: userPrompt }] });
 
   const toolSchema = tools.map(tool => ({
     name: tool.name, description: tool.schema.description,
@@ -79,11 +100,8 @@ export async function query({ userPrompt, tools, systemPrompt,
 
     if (toolCalls.length === 0) { 
       if (!acceptUserInput) { return; } // thoát khỏi main loop khi không còn tool calls 
-      // Tiếp tục đối thoại ở đây
-      const input = prompt('Your turn: ').trim();
-      messages.push({ role: "user", content: input });
-      // console.log(`Bạn đã nhập: ${input}`);
-      if (input === "q") { process.exit(); } // [q]uit program
+      // Tiếp tục đối thoại với LLM
+      userInput();
 
     } else {
 

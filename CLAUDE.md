@@ -33,7 +33,7 @@ A lightweight CLI tool for interacting with Claude AI for coding tasks, implemen
 
 ## Common Commands
 ```bash
-# Run with default prompt
+# Run in interactive mode
 node index.js
 
 # Run with custom prompt

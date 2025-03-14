@@ -39,11 +39,7 @@ export ANTHROPIC_API_KEY=your_api_key_here
 ## Usage
 
 ```bash
-# Run with default prompt
 node index.js
-
-# Run with custom prompt
-node index.js -p "create a simple express server"
 ```
 
 ## How It Works
