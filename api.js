@@ -7,26 +7,16 @@ export async function api({ messages, tools, systemPrompt, model = SMALL_MODEL, 
     "x-api-key": process.env.ANTHROPIC_API_KEY,
     "anthropic-version": "2023-06-01"
   };
-  const body = {
+  const body = JSON.stringify({
     system: systemPrompt.map(prompt => ({ type: "text", text: prompt })),
-    model: model,
-    messages: messages,
-    tools: tools,
-    max_tokens: maxTokens
-  };
+    model, messages, tools, max_tokens: maxTokens,
+  });
 
-  // In ra toàn bộ prompt trước khi gửi lên LLM
-  console.log("=== SENDING PROMPT TO LLM ===");
-  // console.log("System prompt:", JSON.stringify(systemPrompt, null, 2));
+  console.log(`=== SENDING PROMPT TO ${model} ===`);
   console.log("Messages:", JSON.stringify(messages, null, 2));
-  // console.log("Tools:", JSON.stringify(tools, null, 2));
   console.log("=== END OF PROMPT ===");
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: headers,
-    body: JSON.stringify(body)
-  });
+  const response = await fetch(url, {method: "POST", headers, body});
 
   if (!response.ok) {
     const error = await response.json();
@@ -37,85 +27,66 @@ export async function api({ messages, tools, systemPrompt, model = SMALL_MODEL, 
 
 
 function log(block) {
-  if(typeof block === "string") {
-    console.log(block);
-  } else if(Array.isArray(block)) {
-    for(const item of block) {
-      log(item);
+    if(typeof block === "string") {
+        console.log(block);
+
+    } else if(Array.isArray(block)) {
+        for(const item of block) { log(item); }
+
+    } else if(typeof block === "object") {
+        if(block.role) {
+            console.log(`\x1b[36m> ${block.role}\x1b[0m`);
+            log(block.content);
+            console.log("\n");
+            return
+
+        } else if (block.text) {
+            console.log(`${block.text}\n\n`);
+
+        } else {
+            if(block.type === "tool_use") {
+                console.log(`\x1b[32m> ${block.name}\x1b[0m: ${JSON.stringify(block.input)}`);
+
+            } else if(block.type === "tool_result") {
+                console.log(`\x1b[34m> ${block.tool_use_id}\x1b[0m: ${block.content}`);
+            }
+        }
     }
-  } else if(typeof block === "object") {
-    if(block.role) {
-      console.log(`\x1b[36m> ${block.role}\x1b[0m`);
-      log(block.content);
-      console.log("\n");
-      return
-    } else if (block.text) {
-      console.log(block.text);
-      console.log("\n");
-    } else {
-      if(block.type === "tool_use") {
-        console.log(`\x1b[32m> ${block.name}\x1b[0m: ${JSON.stringify(block.input)}`);
-      } else if(block.type === "tool_result") {
-        console.log(`\x1b[34m> ${block.tool_use_id}\x1b[0m: ${block.content}`);
-      }
-    }
-  }
 }
+
 
 export async function query({ userPrompt, tools, systemPrompt, model = SMALL_MODEL, maxTokens = 1024 }) {
   let messages = [{ role: "user", content: [{ type: "text", text: userPrompt }] }];
 
   const toolSchema = tools.map(tool => ({
-    name: tool.name,
-    description: tool.schema.description,
-    input_schema: tool.schema.input_schema || tool.schema.parameters
+    name: tool.name, description: tool.schema.description,
+    input_schema: tool.schema.input_schema || tool.schema.parameters,
   }));
   
   while (true) {
     try {
       const apiResponse = await api({ messages, tools: toolSchema, systemPrompt, model, maxTokens });
       const assistantMessage = { role: apiResponse.role, content: apiResponse.content };
+
       messages.push(assistantMessage);
       log(assistantMessage);
-      const toolCalls = [];
-      if(Array.isArray(apiResponse.content)) {
-        for(const block of apiResponse.content) {
-          if(block.type === "tool_use") {
-            toolCalls.push(block);
-          }
-        }
-      } else {
-        return;
-      }
 
-      if(toolCalls.length > 0) {
-        const toolResults = await Promise.all(toolCalls.map(async (toolCall) => {
-          // Assign a unique tool use ID if not already present
-          const toolUseId = toolCall.id;
-          
-          // Clone the toolCall with the unique ID
-          const uniqueToolCall = { ...toolCall, id: toolUseId };
-          
-          const toolResult = await tools.find(tool => tool.name === uniqueToolCall.name)?.handler?.(uniqueToolCall) || '<tool-not-found>';
+      // Extract tool calls and wait for all results before continuing
+      const toolCalls = apiResponse.content?.filter(block => block.type === 'tool_use') || [];
+      if (toolCalls.length === 0) { return; }
 
-          return {
-            role: "user",
-            content: [{
-              type: "tool_result",
-              tool_use_id: toolUseId,
-              content: JSON.stringify(toolResult)
-            }]
-          };
-        }));
+      // Process all tool calls and collect results
+      const toolResults = await Promise.all(toolCalls.map(async (toolCall) => {
+        const tool = tools.find(t => t.name === toolCall.name);
+        const result = JSON.stringify( tool ? await tool.handler(toolCall) : '<tool-not-found>' );
+        return {
+          role: "user",
+          content: [{ type: "tool_result", tool_use_id: toolCall.id, content: result }]
+        };
+      }));
 
-        // Log and push tool results
-        for (const message of toolResults) {
-          log(message);
-          messages.push(message);
-        }
-      } else {
-        return;
-      }
+      // Add all results to messages before continuing
+      for (const result of toolResults) { log(result); messages.push(result); }
     } catch (error) {
       console.error("Error:", error.message);
       break;
