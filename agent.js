@@ -10,33 +10,22 @@ When you are searching for a keyword or file and are not confident that you will
 right match on the first try, use the Agent tool to perform the search for you. For example:
 
 - If you are searching for a keyword like "config" or "logger", the Agent tool is appropriate
-
-- If you want to read a specific file path, 
-  use the FileReadTool or GlobTool tool instead of the Agent tool, to find the match more quickly
-
-- If you are searching for a specific class definition like "class Foo",
-  use the GlobTool tool instead, to find the match more quickly
+- If you want to read a specific file path, use FileReadTool or GlobTool instead
+- If you are searching for a specific class definition, use GlobTool
 
 Usage notes:
-
-1. Launch multiple agents concurrently whenever possible, to maximize performance
-
-2. When the agent is done, it will return a single message back to you
-
-3. Each agent invocation is stateless
-
-4. The agent's outputs should generally be trusted
+1. Launch multiple agents concurrently to maximize performance
+2. Agent returns a single message
+3. Each invocation is stateless
+4. Agent's outputs should be trusted
 `;
 
-// Function to get available tools
-async function getAvailableTools() {
-  // Import tools dynamically to avoid circular dependencies
-  return await Promise.all([
-    import('./grep.js'),
-    import('./glob.js'),
-    import('./ls.js'),
-  ]);
-}
+// Simplified tool import with arrow function
+const getAvailableTools = async () => Promise.all([
+  import('./grep.js'),
+  import('./glob.js'),
+  import('./ls.js')
+]);
 
 const schema = {
   name: name, description: DESCRIPTION,
@@ -47,67 +36,47 @@ const schema = {
 };
 
 const handler = async (toolCall) => {
-  console.log('\x1b[32mInitializing agent...\x1b[0m', toolCall.input);  
   const { prompt } = toolCall.input;
   const startTime = Date.now();
   const tools = await getAvailableTools();
-  let systemPrompt = getAgentPrompt();
+  const systemPrompt = getAgentPrompt();
   const result = await query({ userPrompt: prompt, tools, systemPrompt, model: SMALL_MODEL, maxTokens: 1024 });
 
-  let toolUseCount = 0;
-  let finalResponse = '';
-  if (result && result.content) {
-    for (const block of result.content) {
-      if (block.type === 'text') { finalResponse += block.text; }
-      if (block.type === 'tool_use') { toolUseCount++; }
-    }
-  }
-  
-  // Estimate tokens (in a real implementation, this would come from the API response)
+  // Compact response processing
+  const finalResponse = result?.content
+    ?.filter(block => block.type === 'text')
+    ?.map(block => block.text)
+    ?.join('') || '';
+
+  const toolUseCount = result?.content?.filter(block => block.type === 'tool_use')?.length || 0;
   const totalTokens = Math.round(finalResponse.split(/\s+/).length * 1.3);
   const durationMs = Date.now() - startTime;
-  const p = toolUseCount === 1 ? '' : 's';
-  const s = (durationMs / 1000).toFixed(1);
-  const summary = `Done (${toolUseCount} tool use${p} · ${totalTokens} tokens · ${s}s)`;
-  console.log("\x1b[32mAgent query finalResponse:\x1b[0m", summary);
-  return { summary, output: finalResponse || "Agent completed the task, but no text response.",};
+
+  const summary = `Done (${toolUseCount} tool use${toolUseCount !== 1 ? 's' : ''} · ${totalTokens} tokens · ${(durationMs / 1000).toFixed(1)}s)`;
+  
+  console.log('\x1b[32mAgent query finalResponse:\x1b[0m', summary);
+  
+  return { summary, output: finalResponse || "Agent completed the task, but no text response." };
 };
 
-
-function getAgentPrompt() {
-  return [
-`You are an coding agent. Given the user's prompt,
-you should use the tools available to you to answer the user's question.
-
+// Compact env info with template literals and arrow function
+const getAgentPrompt = () => [
+  `You are a coding agent. Given the user's prompt, use available tools to answer concisely.
 
 Notes:
+1. Be direct, one-word answers preferred. Avoid explanations.
+2. Share relevant file names and code snippets.
+3. Use absolute file paths.`,
+  getEnvInfo()
+];
 
-1. IMPORTANT: You should be concise, direct, and to the point, since your responses 
-   will be displayed on a command line interface. Answer the user's question directly, 
-   without elaboration, explanation, or details. One word answers are best.
-   Avoid introductions, conclusions, and explanations.
-
-   You MUST avoid text before/after your response, such as
-   "The answer is <answer>.", 
-   "Here is the content of the file..." or 
-   "Based on the information provided, the answer is..." or 
-   "Here is what I will do next...".
-
-2. When relevant, share file names and code snippets relevant to the query.
-
-3. Any file paths you return in your final response MUST be absolute. DO NOT use relative paths.`,
-    `${getEnvInfo()}`,
-  ]
-}
-
-function getEnvInfo() {
-  return `Here is useful information about the environment you are running in:
+// Simplified environment info function
+const getEnvInfo = () => `Here is useful environment information:
 <env>
 Working directory: ${getCwd()}
 Is directory a git repo: ${isGit ? 'Yes' : 'No'}
 Platform: ${process.platform}
 Today's date: ${new Date().toLocaleDateString()}
-</env>`
-}
+</env>`;
 
 export { name, schema, handler };
