@@ -62,17 +62,15 @@ const handler = async (toolCall) => {
       if (block.type === 'tool_use') { toolUseCount++; }
     }
   }
-  console.log("\x1b[32mAgent query finalResponse: \x1b[0m", finalResponse);
   
   // Estimate tokens (in a real implementation, this would come from the API response)
   const totalTokens = Math.round(finalResponse.split(/\s+/).length * 1.3);
   const durationMs = Date.now() - startTime;
   const p = toolUseCount === 1 ? '' : 's';
   const s = (durationMs / 1000).toFixed(1);
-  return {
-    summary: `Done (${toolUseCount} tool use${p} · ${totalTokens} tokens · ${s}s)`,
-    output: finalResponse || "The agent completed the task but didn't provide a text response.",
-  };
+  const summary = `Done (${toolUseCount} tool use${p} · ${totalTokens} tokens · ${s}s)`;
+  console.log("\x1b[32mAgent query finalResponse:\x1b[0m", summary);
+  return { summary, output: finalResponse || "Agent completed the task, but no text response.",};
 };
 
 
