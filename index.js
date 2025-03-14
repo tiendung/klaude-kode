@@ -19,5 +19,5 @@ const acceptUserInput = !( process.argv[2] === '-p' );
 const userPrompt = acceptUserInput ? null : process.argv.slice(3).join(' ');
 
 // Gọi LLM xử lý userPrompt bằng các tools được cung cấp theo hướng dẫn từ systemPrompt
-await query({ userPrompt, tools, systemPrompt, acceptUserInput,  model }).
+await query({ userPrompt, tools, systemPrompt, acceptUserInput,  model, shouldExit: true }).
 	catch(error => console.error("Error:", error));
