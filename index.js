@@ -17,4 +17,5 @@ const systemPrompt = await getSystemPrompt();
 const userPrompt = process.argv[2] == '-p' ? process.argv.slice(3).join(' ') : "summ ./docs/";
 
 // Gọi LLM xử lý userPrompt bằng các tools được cung cấp theo hướng dẫn từ systemPrompt
-await query({ userPrompt, tools, systemPrompt }).catch(error => console.error("Error:", error));
+await query({ userPrompt, tools, systemPrompt, acceptUserInput: true }).
+	catch(error => console.error("Error:", error));

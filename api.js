@@ -1,4 +1,6 @@
 import { SMALL_MODEL } from './constants.js';
+import promptSync from 'prompt-sync';
+const prompt = promptSync();
 
 export async function api({ messages, tools, systemPrompt, model = SMALL_MODEL, maxTokens = 2048 }) {
   const url = "https://api.anthropic.com/v1/messages";
@@ -12,9 +14,9 @@ export async function api({ messages, tools, systemPrompt, model = SMALL_MODEL, 
     model, messages, tools, max_tokens: maxTokens,
   });
 
-  console.log(`=== SENDING PROMPT TO ${model} ===`);
-  console.log("Messages:", JSON.stringify(messages, null, 2));
-  console.log("=== END OF PROMPT ===");
+  // console.log(`=== SENDING PROMPT TO ${model} ===`);
+  // console.log("Messages:", JSON.stringify(messages, null, 2));
+  // console.log("=== END OF PROMPT ===");
 
   const response = await fetch(url, {method: "POST", headers, body});
 
@@ -55,7 +57,8 @@ function log(block) {
 }
 
 
-export async function query({ userPrompt, tools, systemPrompt, model = SMALL_MODEL, maxTokens = 1024 }) {
+export async function query({ userPrompt, tools, systemPrompt, 
+      model = SMALL_MODEL, maxTokens = 1024, acceptUserInput = false }) {
   let messages = [{ role: "user", content: [{ type: "text", text: userPrompt }] }];
 
   const toolSchema = tools.map(tool => ({
@@ -63,10 +66,10 @@ export async function query({ userPrompt, tools, systemPrompt, model = SMALL_MOD
     input_schema: tool.schema.input_schema || tool.schema.parameters,
   }));
   
-  while (true) { // the main loop
-    // try {
+  while (true) { // tool use main loop
     const apiResponse = await api({ messages, tools: toolSchema, systemPrompt, model, maxTokens });
     const assistantMessage = { role: apiResponse.role, content: apiResponse.content };
+    // const assistantMessage = { role: "assistant", content: "hello" }; // dump message
 
     messages.push(assistantMessage);
     log(assistantMessage);
@@ -75,16 +78,23 @@ export async function query({ userPrompt, tools, systemPrompt, model = SMALL_MOD
     const toolCalls = apiResponse.content?.filter(block => block.type === 'tool_use') || [];
 
     if (toolCalls.length === 0) { 
-      return; // thoát khỏi main loop khi không còn tool calls 
-      // TODO: handle user input để tiếp tục đối thoại ở đây ??
-    }
+      if (!acceptUserInput) { return; } // thoát khỏi main loop khi không còn tool calls 
+      // Tiếp tục đối thoại ở đây
+      const input = prompt('Your turn: ').trim();
+      messages.push({ role: "user", content: input });
+      // console.log(`Bạn đã nhập: ${input}`);
+      if (input === "q") { process.exit(); } // [q]uit program
 
-    await Promise.all(toolCalls.map(async (toolCall) => {
-      const tool = tools.find(t => t.name === toolCall.name);
-      const c = JSON.stringify( tool ? await tool.handler(toolCall) : '<tool-not-found>' );
-      const r = { role: "user", content: [{ type: "tool_result", tool_use_id: toolCall.id, content: c }] };
-      log(r); messages.push(r);
-    }));
-    // } catch (error) { console.error("Error:", error.message); return; }
-  }
+    } else {
+
+      const toolResults = await Promise.all(toolCalls.map(async (toolCall) => {
+        const tool = tools.find(t => t.name === toolCall.name);
+        const result = tool ? await tool.handler(toolCall) : '<tool-not-found>';
+        return { type: "tool_result", tool_use_id: toolCall.id, content: JSON.stringify(result) };
+      }));
+
+      // Note: Chỉ gửi 1 message duy nhất cho nhiều tool uses
+      messages.push({ role: "user", content: toolResults });
+    }
+  } // the main loop
 }
