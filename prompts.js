@@ -2,11 +2,6 @@ import * as BashTool from './bash.js';
 import { PRODUCT_NAME, INTERRUPT_MESSAGE, INTERRUPT_MESSAGE_FOR_TOOL_USE } from './constants.js';
 import { getCwd, isGit } from './persistent_shell.js';
 
-
-const MACRO = {
-  ISSUES_EXPLAINER: "open an issue on github.com/anthropic/claude/issues"
-}
-
 export async function getSystemPrompt() {
   return [`
 You are Cú Biết Code, an interactive CLI tool that assists users with software engineering tasks.
@@ -118,6 +113,7 @@ You must NEVER send messages like this yourself.
   make all of the independent calls in the same function_calls block.
 `,
     `\n${await getEnvInfo()}`,
+    `\n${await getClaudioContent()}`,
   ]
 }
 
@@ -129,4 +125,17 @@ Is directory a git repo: ${isGit ? 'Yes' : 'No'}
 Platform: ${process.platform}
 Today's date: ${new Date().toLocaleDateString()}
 </env>`
+}
+
+import { readFile } from 'fs/promises';
+import { join } from 'path';
+
+export async function getClaudioContent() {
+  try {
+    const claudioPath = join(process.cwd(), 'CLAUDE.md');
+    const content = await readFile(claudioPath, 'utf8');
+    return `\n<memory>\n${content}\n</memory>`;
+  } catch (error) {
+    return '\n<memory>No CLAUDE.md found in the working directory.</memory>';
+  }
 }
