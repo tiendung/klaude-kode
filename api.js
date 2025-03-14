@@ -3,7 +3,6 @@ import promptSync from 'prompt-sync';
 const prompt = promptSync();
 
 export async function api({ messages, tools, systemPrompt, model, maxTokens = 1024 }) {
-
   const url = "https://api.anthropic.com/v1/messages";
   const headers = {
     "content-type": "application/json",
@@ -11,14 +10,11 @@ export async function api({ messages, tools, systemPrompt, model, maxTokens = 10
     "anthropic-version": "2023-06-01",
   };
 
+  // Add beta header for large model
+  if (model == LARGE_MODEL) headers["anthropic-beta"] = "token-efficient-tools-2025-02-19";
 
-  if (model == LARGE_MODEL) { // Claude 3.7 Sonnet
-    // https://www.anthropic.com/news/token-saving-updates
-    // messages.at(-1).cache_control = {type: "ephemeral"}; // tại sao lại chưa work?
-    headers["anthropic-beta"] = "token-efficient-tools-2025-02-19";
-  }
-
-  let system = systemPrompt.map(prompt => ({ type: "text", text: prompt }));
+  // Format system prompts and apply token efficiency
+  const system = systemPrompt.map(prompt => ({ type: "text", text: prompt }));
   system.at(-1).cache_control = {type: "ephemeral"};
   tools.at(-1).cache_control = {type: "ephemeral"};
 
@@ -33,6 +29,7 @@ export async function api({ messages, tools, systemPrompt, model, maxTokens = 10
 }
 
 
+// Compact logging function for different content types
 const log = (block) => {
   const logTypes = {
     string: (b) => console.log(b),
@@ -50,52 +47,54 @@ const log = (block) => {
 
 export async function query({ userPrompt, tools, systemPrompt, shouldExit = false,
   model = SMALL_MODEL, maxTokens = 1024, acceptUserInput = false }) {
-
   let messages = [];
+  
+  // Compact user input handler
+  const userInput = () => {
+    const input = prompt('\x1b[32muser: \x1b[0m').trim();
+    messages.push({ role: "user", content: input });
+    if (input === "q") process.exit(); // [q]uit program
+  }
 
-    function userInput() {
-      const input = prompt('\x1b[32muser: \x1b[0m').trim();
-      messages.push({ role: "user", content: input });
-      if (input === "q") { process.exit(); } // [q]uit program
-    }
-
+  // Initialize messages based on user input mode
   if (acceptUserInput && userPrompt === null) userInput();
   else messages.push({ role: "user", content: [{ type: "text", text: userPrompt }] });
 
+  // Compact tool schema transformation
   const toolSchema = tools.map(tool => ({
     name: tool.name, description: tool.schema.description,
     input_schema: tool.schema.input_schema || tool.schema.parameters,
   }));
   
-  while (true) { // tool use main loop
+  // Main tool use loop
+  while (true) { 
     const apiResponse = await api({ messages, tools: toolSchema, systemPrompt, model, maxTokens });
-    // console.log("apiResponse:", JSON.stringify(apiResponse, null, 2));
     const assistantMessage = { role: apiResponse.role, content: apiResponse.content };
     messages.push(assistantMessage);
     log(assistantMessage);
 
-    // model name and token usage log
-    let u = apiResponse.usage;
-    u = apiResponse.model+` (i: ${u.input_tokens}, o: ${u.output_tokens}, c: ${u.cache_read_input_tokens})`;
-    console.log(`\x1b[35m${u}\x1b[0m`);
+    // Compact token usage logging
+    const u = apiResponse.usage;
+    const usageInfo = `${apiResponse.model} (i: ${u.input_tokens}, o: ${u.output_tokens}, c: ${u.cache_read_input_tokens})`;
+    console.log(`\x1b[35m${usageInfo}\x1b[0m`);
 
-    // Extract tool calls and wait for all results before continuing
+    // Process tool calls or handle completion
     const toolCalls = apiResponse.content?.filter(block => block.type === 'tool_use') || [];
 
     if (toolCalls.length === 0) { 
-      if (!acceptUserInput) if (shouldExit) process.exit(); else return apiResponse;
-      else userInput(); // Tiếp tục đối thoại với LLM
-
+      // Handle conversation completion or continue
+      if (!acceptUserInput) return shouldExit ? process.exit() : apiResponse;
+      else userInput(); // Continue dialog with LLM
     } else {
-
+      // Execute all tool calls in parallel
       const toolResults = await Promise.all(toolCalls.map(async (toolCall) => {
         const tool = tools.find(t => t.name === toolCall.name);
         const result = tool ? await tool.handler(toolCall) : '<tool-not-found>';
         return { type: "tool_result", tool_use_id: toolCall.id, content: JSON.stringify(result) };
       }));
 
-      // Note: Chỉ gửi 1 message duy nhất cho nhiều tool uses
+      // Send single message with all tool results
       messages.push({ role: "user", content: toolResults });
     }
-  } // the main loop
+  } // End main loop
 }
