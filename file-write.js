@@ -6,7 +6,7 @@ const MAX_LINES = 16000;
 const TRUNC_MSG = '<truncated>';
 
 const schema = {
-  name, description: 'Write a file to the local filesystem. Overwrites the existing file if there is one.',
+  name, description: `Write / create a file to the local filesystem. Don't use for anything else`,
   parameters: {
     type: "object", required: ["file_path", "content"],
     properties: {

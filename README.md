@@ -1,65 +1,83 @@
-# koding.js
+# Koding.js 🤖
 
-A lightweight reimplementation of claude-code assistant functionality without any external dependencies. This project provides a simple CLI interface to interact with Claude for coding tasks.
+A lightweight, dependency-free CLI tool for AI-assisted coding tasks, designed to stay under 2000 lines of code.
 
-## TODOs
-- [x] Let user tương tác với `node index.js` khi cần input từ user
-- [x] Sửa lỗi gọi nhiều tools 1 lúc để AgentTool có thể read nhiều files 1 lúc
-- [x] Thinking Tool for brainstorming and creative writing
+## ✨ Core Philosophy
 
-## Features
+- **Minimalist Design**: Every line of code serves a purpose
+- **Zero External Dependencies**: Pure, self-contained functionality
+- **Security-First**: Sandboxed shell execution and command validation
+- **Rapid AI Interaction**: Fast, stateful CLI for coding tasks
 
-- Interact with Claude through a command-line interface
-- Execute bash commands in a persistent shell
-- Read, write, and edit files
-- Search through files using grep
-- List directory contents
-- Run agents for more complex tasks
+## 🛠 Key Features
 
-## Prerequisites
+- Persistent shell session management
+- Atomic file operations (read/write/edit)
+- AI-powered file search and task automation
+- Secure, context-aware tool chaining
+
+## 🚀 Prerequisites
 
 - Node.js
-- Anthropic API key
-- Together API key (for ThinkingTool)
+- Anthropic API Key
+- (Optional) Together API Key for advanced reasoning
 
-## Installation
+## 🔧 Installation & Setup
 
 ```bash
 # Clone the repository
 git clone https://github.com/tiendung/koding.js
 cd koding.js
+
+# Set API keys
+export ANTHROPIC_API_KEY=your_anthropic_key
+export TOGETHER_API_KEY=your_together_key  # Optional
 ```
 
-## Configuration
-
-Set your API keys as environment variables:
+## 💻 Usage Examples
 
 ```bash
-export ANTHROPIC_API_KEY=your_api_key_here
-export TOGETHER_API_KEY=your_together_api_key_here # optional
+# Interactive mode with small model
+node index.js
+
+# Large model (Sonnet)
+node index.js -l
+
+# Run specific task
+node index.js -p "Refactor authentication middleware"
+
+# Use ThinkingTool for complex problems
+node index.js -p "Think to solve: <complex coding challenge>"
 ```
 
-## Usage
+## 🧰 Available Tools
 
-```bash
-node index.js 	 # interactive mode with small model (haiku 3.5)
-node index.js -l # interactive mode with large model (sonnet 3.7)
-node index.js -p "commit changes" # run and terminate
-node index.js -p "Use ThinkingTool to solve: <problem>" # deep thinking with Together AI
-```
+1. **BashTool**: Secure shell command execution
+2. **FileTools**: Atomic file read/write/edit
+3. **SearchTools**: Regex and glob file searching
+4. **AgentTool**: Parallel task solving
+5. **ThinkingTool**: Advanced reasoning and brainstorming
 
-## How It Works
+## 🔍 Project Structure
 
-Claude-Code uses the Anthropic API to interact with Claude AI models. It provides a set of tools that Claude can use to help with coding tasks:
+- Total source code: <2000 lines
+- No external runtime dependencies
+- Modular, functional design
+- Typescript-like typing with JSDoc
 
-- **BashTool**: Execute bash commands
-- **FileReadTool**: Read file contents
-- **FileWriteTool**: Write to files
-- **FileEditTool**: Edit existing files
-- **GrepTool**: Search through files
-- **GlobTool**: Find files matching patterns
-- **LSTool**: List directory contents
-- **AgentTool**: Run more complex tasks
-- **ThinkingTool**: Deep thinking and step-by-step reasoning using Together AI
+## 🛡️ Security Principles
 
-The system maintains a persistent shell session, allowing for stateful interactions across commands.
+- Command validation
+- No shell injection risks
+- Restricted tool execution
+- Ephemeral agent instantiation
+
+## 🤝 Contribution
+
+Contributions welcome! Please keep PRs minimal and focused.
+
+## 📄 License
+
+MIT License
+
+*Crafted with ❤️ for developers who love clean, efficient tools*
