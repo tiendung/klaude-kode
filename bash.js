@@ -9,7 +9,7 @@ import { isAbsolute, resolve } from 'path';
 import { statSync } from 'fs';
 
 const name = "BashTool";
-const BANNED_COMMANDS = new Set(['alias', 'curl', 'wget', 'nc', 'telnet', 'lynx', 'httpie', 'xh', 'chrome', 'firefox']);
+const BANNED_COMMANDS = ['alias', 'curl', 'wget', 'nc', 'telnet', 'lynx', 'httpie', 'xh', 'chrome', 'firefox'];
 const MAX_OUTPUT_LENGTH = 30_000, MAX_RENDERED_LINES = 50;
 
 const DESCRIPTION = `
