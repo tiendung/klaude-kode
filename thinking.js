@@ -4,21 +4,14 @@ import fetch from 'node-fetch';
 
 const name = "ThinkingTool";
 const DESCRIPTION = `
-A thinking tool that helps to brainstorm and solve hard problems including coding tasks.
-
-Features:
-1. Break down complex problems into manageable components
-2. Explore multiple solutions and approaches
-3. Generate creative ideas through structured thinking
-4. Debug code
-5. Planning
-6. Hard problem solving
+A thinking tool that helps to brainstorm and solve hard or creative problems
+including coding / debugging and planning tasks.
 
 Usage:
 - Provide a clear problem statement or question
 
 Parameters:
-- prompt (required): The problem or task to think about
+- prompt (required): The problem or task to think about and all relevent context
 - model (optional): The Together AI model to use, for now only deepseek-ai/DeepSeek-R1 is available
 - temperature (optional): Controls randomness (0.6-0.65)
 - max_tokens (optional): Maximum output length
@@ -100,7 +93,7 @@ const handler = async (toolCall) => {
     // Extract the thinking response and split into think/answer parts
     const fullResponse = response.choices?.[0]?.message?.content || "";
     const [thinking, answer] = fullResponse.split('</think>').map(s => s.trim());
-    console.log(`${model}:\nThinking: ${thinking}\nAnswer: ${answer}`);
+    console.log(`\x1b[33m${model}:\x1b[0m\n\x1b[36mThinking:\x1b[0m ${thinking}\n\x1b[32mAnswer:\x1b[0m ${answer}`);
 
     return {
       thinking: answer || thinking, // Return answer if available, otherwise full thinking
