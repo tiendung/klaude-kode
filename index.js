@@ -9,7 +9,7 @@ import * as LSTool from './ls.js';
 import * as ThinkingTool from './thinking.js';
 
 const tools = [AgentTool, BashTool, FileEditTool, FileReadTool, FileWriteTool, 
-	GrepTool, GlobTool, LSTool, ThinkingTool];
+	GrepTool, GlobTool, LSTool, ...(process.env.TOGETHER_API_KEY ? [ThinkingTool] : [])];
 
 import { query } from './api.js';
 import { getSystemPrompt } from './prompts.js';
