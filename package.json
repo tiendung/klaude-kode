@@ -1,4 +1,5 @@
 {
+
   "name": "koding.js",
   "module": "index.js",
   "type": "module",
@@ -6,5 +7,9 @@
   "dependencies": {
     "node-fetch": "^3.3.2",
     "prompt-sync": "^4.2.0"
+  },
+  "bin": {
+    "koding": "./index.js",
+    "k": "./index.js"
   }
 }

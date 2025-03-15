@@ -28,6 +28,7 @@ A lightweight, dependency-free CLI tool for AI-assisted coding tasks, designed t
 # Clone the repository
 git clone https://github.com/tiendung/koding.js
 cd koding.js
+npm install
 
 # Set API keys
 export ANTHROPIC_API_KEY=your_anthropic_key
