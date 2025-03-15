@@ -34,7 +34,7 @@ const readFileContent = async (filePath) => {
 const getAllFiles = async () => {
   const entries = await fs.readdir('.', { withFileTypes: true });
   return entries
-    .filter(entry => !entry.isDirectory() && /\.(js|CLAUDE\.md)$/.test(entry.name))
+    .filter(entry => !entry.isDirectory() && /\.(js|KLAUDE\.md)$/.test(entry.name))
     .map(entry => entry.name);
 };
 

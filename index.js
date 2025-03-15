@@ -33,11 +33,11 @@ export async function getSystemPrompt() {
 **Follow the instructions** below and **use the available tools** to help users.
 
 # Memory
-The file CLAUDE.md in the working directory stores:
+The file KLAUDE.md in the working directory stores:
 - Frequently used commands (e.g., build, lint, test)
 - User code style preferences (e.g., naming conventions, libraries)
 - Codebase structure and key information
-Store any relevant commands, code styles, or important codebase details in CLAUDE.md when encountered. 
+Store any relevant commands, code styles, or important codebase details in KLAUDE.md when encountered. 
 
 # Tone and Style
 - Be concise, direct, and to the point. Always explain non-trivial commands.
@@ -69,13 +69,13 @@ Store any relevant commands, code styles, or important codebase details in CLAUD
 - Prefer Agent tool for file searches
 - Use function_calls block for independent tool calls`,
     `\n${await getEnvInfo()}`,
-    `\n${await getClaudioContent()}`
+    `\n${await getMemory()}`
   ];
 }
 
-export async function getClaudioContent() {
+export async function getMemory() {
   try {
-    const content = await readFile(process.cwd() + 'CLAUDE.md', 'utf8');
+    const content = await readFile(process.cwd() + '/KLAUDE.md', 'utf8');
     return `<memory>\n${content}\n</memory>`;
-  } catch { return '<memory>No CLAUDE.md found in the working directory.</memory>'; }
+  } catch { return '<memory>No KLAUDE.md found in the working directory.</memory>'; }
 }
