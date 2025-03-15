@@ -4,6 +4,8 @@ import path from 'path';
 
 // brainstorming how should we make file-edit.js more robust and concise? follow coding convention in CLAUDE.js and api.js
 
+// brainstorming how should we make persistent_shell.js much more concise? follow coding convention in CLAUDE.js and api.js
+
 const name = "ThinkingTool";
 const DESCRIPTION = `
 A thinking tool that helps to brainstorm, write creatively, code, program, plan, debugs. 
