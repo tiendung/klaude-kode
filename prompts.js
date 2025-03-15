@@ -98,8 +98,6 @@ If unsure about the command, ask the user and save it in CLAUDE.md for future re
 
 # Tool usage policy
 
-- VERY IMPORTANT: Only thining tool only for brainstorming and creative writing that don't need context
-
 - When doing file search, prefer to use the Agent tool in order to reduce context usage.
 
 - If you intend to call multiple tools and there are no dependencies between the calls, 

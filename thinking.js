@@ -2,14 +2,13 @@ import fetch from 'node-fetch';
 import { promises as fs } from 'fs';
 import path from 'path';
 
-// how can we improve thinking.js?
 const name = "ThinkingTool";
 const DESCRIPTION = `
-A thinking tool that helps to brainstorm and creative writing only.
-Don't use thinking tool to code related tasks.
+A thinking tool that helps to brainstorm, write creatively, code, program, plan, debugs. 
+Really good to solve hard problem that cannot be solved normally.
 
 Usage:
-Provide a clear problem statement only
+Provide a clear problem statement
 
 
 Parameters:
@@ -73,11 +72,43 @@ function extractFilePaths(prompt) {
   return matches.map(match => match[1]);
 }
 
+/**
+ * Get all files in directory recursively
+ * @returns {Promise<string[]>} Array of file paths
+ */
+async function getAllFiles() {
+  const entries = await fs.readdir('.', { withFileTypes: true });
+  return entries
+    .filter(entry => !entry.isDirectory() && (entry.name.endsWith('.md') || entry.name.endsWith('.js')))
+    .map(entry => entry.name);
+}
+
 const handler = async (toolCall) => {
     const { prompt, model = "deepseek-ai/DeepSeek-R1", temperature = 0.6, max_tokens = 8000 } = toolCall.input;
 
-    // Format the thinking prompt with <think> tag to encourage step-by-step reasoning
-    const messages = [ { role: "user", content: prompt }, { role: "assistant", content: "<think>\n" } ];
+    // Get all files and read their contents
+    const files = await getAllFiles();
+    const fileContents = await Promise.all(
+      files.map(async (file) => {
+        const content = await readFileContent(file);
+        return `<file name='${file}'>${content}</file>`;
+      })
+    );
+    
+    // Format the thinking prompt with context and think tag
+    const contextStr = fileContents.join('\n');
+
+    const messages = [
+      { 
+        role: "user", 
+        // content: prompt 
+        content: `<context>${contextStr}</context>\n\n${prompt}` 
+      },
+      { 
+        role: "assistant", 
+        content: "<think>\n" 
+      }
+    ];
 
     // Call the Together AI API
     const response = await queryTogetherAI({ model, messages, temperature, max_tokens });
