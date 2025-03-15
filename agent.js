@@ -55,22 +55,17 @@ const handler = async (toolCall) => {
   const summary = `Done (${toolUseCount} tool use${toolUseCount !== 1 ? 's' : ''} · ${totalTokens} tokens · ${(durationMs / 1000).toFixed(1)}s)`;
   
   console.log('\x1b[32mAgent query finalResponse:\x1b[0m', summary);
-  
   return { summary, output: finalResponse || "Agent completed the task, but no text response." };
 };
 
-// Async agent prompt generation
 const getAgentPrompt = async () => [
-  `You are a coding agent. Given the user's prompt, use available tools to answer concisely.
-
-Notes:
+  `You are a coding agent. Given the user's prompt, use available tools to answer concisely. Notes:
 1. Be direct, one-word answers preferred. Avoid explanations.
 2. Share relevant file names and code snippets.
 3. Use absolute file paths.`,
   await getEnvInfo()
 ];
 
-// Async environment info function
 const getEnvInfo = async () => {
   const gitStatus = await isGit();
   return `Here is useful environment information:\n<env>\nWorking directory: ${getCwd()}\nIs directory a git repo: ${gitStatus ? 'Yes' : 'No'}\nPlatform: ${process.platform}\nToday's date: ${new Date().toLocaleDateString()}\n</env>`;

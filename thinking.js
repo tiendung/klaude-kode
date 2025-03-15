@@ -70,12 +70,8 @@ const handler = async (toolCall) => {
   const fullResponse = response.choices?.[0]?.message?.content || "";
   const [thinking, answer] = fullResponse.split('</think>').map(s => s.trim());
 
-  console.log(`\x1b[33m${model}:\x1b[0m\n\x1b[36mThinking:\x1b[0m ${thinking}\n\x1b[32mAnswer:\x1b[0m ${answer}`);
-
-  return {
-    thinking: answer || thinking,
-    summary: "Thinking process completed"
-  };
+  console.log(`\x1b[33m${model}:\x1b[0m\n\x1b[36mThink:\x1b[0m ${thinking}\n\x1b[32mAnswer:\x1b[0m ${answer}`);
+  return { thinking: answer || thinking, summary: "Thinking process completed"};
 };
 
 export { name, schema, handler };

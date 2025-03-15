@@ -60,7 +60,5 @@ export async function getClaudioContent() {
   try {
     const content = await readFile(join(process.cwd(), 'CLAUDE.md'), 'utf8');
     return `<memory>\n${content}\n</memory>`;
-  } catch {
-    return '<memory>No CLAUDE.md found in the working directory.</memory>';
-  }
+  } catch { return '<memory>No CLAUDE.md found in the working directory.</memory>'; }
 }

@@ -33,8 +33,7 @@ const execCommand = (cmd) => new Promise(resolve => {
 const handler = async ({ input: { pattern, path = '.', exclude } }) => {
   try {
     const command = `find "${path}" -type f -path "${pattern}"`
-      + (exclude ? ` | grep -v "${exclude}"` : '')
-      + ` | head -n ${MAX_RESULTS + 1}`;
+      + (exclude ? ` | grep -v "${exclude}"` : '') + ` | head -n ${MAX_RESULTS + 1}`;
 
     const { stdout, stderr, code } = await execCommand(command);
     if (code !== 0) return { error: stderr || 'Pattern match failed' };
@@ -43,13 +42,11 @@ const handler = async ({ input: { pattern, path = '.', exclude } }) => {
     const isTruncated = files.length > MAX_RESULTS;
     const results = files.slice(0, MAX_RESULTS);
 
-    return {
-      count: results.length,
-      files: results,
+    return { count: results.length, files: results,
       output: `${results.length} matches${isTruncated ? ' (truncated)' : ''}:\n${results.join('\n')}`
     };
   } catch (error) {
-    return { error: `Glob search failed: ${error.message}` };
+    return { error: `Glob search failed: ${error.message}` }; 
   }
 };
 

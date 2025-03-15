@@ -144,22 +144,16 @@ const handler = async (toolCall) => {
 
     // Update file timestamps using functional style
     extractPaths(`${command} ${stdout}`).forEach(filePath => {
-      try {
-        toolCall.readFileTimestamps[resolve(filePath)] = statSync(filePath).mtimeMs;
+      try { toolCall.readFileTimestamps[resolve(filePath)] = statSync(filePath).mtimeMs;
       } catch {/* Ignore missing files */}
     });
 
     const { truncatedContent: so, totalLines: sol } = formatOutput(stdout);
     const { truncatedContent: se, totalLines: sel } = formatOutput(stderr);
 
-    return { 
-      stdout: so, stderr: se, 
-      stdoutLines: sol, stderrLines: sel,
-      interrupted: result.interrupted || false
-    };
-  } catch (error) {
-    return { stdout: '', stderr: `Error: ${error.message}`, stdoutLines: 0, stderrLines: 1 };
-  }
+    return { stdout: so, stderr: se, stdoutLines: sol, stderrLines: sel,
+      interrupted: result.interrupted || false };
+  } catch (error) { return { stdout: '', stderr: `Error: ${error.message}`, stdoutLines: 0, stderrLines: 1 }; }
 };
 
 export { name, schema, handler };
