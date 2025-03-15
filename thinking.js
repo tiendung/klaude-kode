@@ -2,7 +2,8 @@ import fetch from 'node-fetch';
 import { promises as fs } from 'fs';
 import path from 'path';
 
-// use thinking tool to brainstorming how should we enhance file-edit.js? follow coding convention in CLAUDE.js and api.js
+// brainstorming how should we make file-edit.js more robust and concise? follow coding convention in CLAUDE.js and api.js
+
 const name = "ThinkingTool";
 const DESCRIPTION = `
 A thinking tool that helps to brainstorm, write creatively, code, program, plan, debugs. 
