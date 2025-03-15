@@ -1,6 +1,6 @@
 # Koding.js 🤖
 
-A lightweight, dependency-free CLI tool for AI-assisted coding tasks, designed to stay under 2000 lines of code.
+A lightweight CLI tool for AI-assisted coding tasks, designed to stay under 2000 lines of code.
 
 ## ✨ Core Philosophy
 
