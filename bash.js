@@ -17,48 +17,28 @@ Executes a given bash command in a persistent shell session with optional timeou
 ensuring proper handling and security measures. Before executing the command, please follow these steps:
 
 1. Directory Verification:
+  - If the command will create new directories or files, first use the LS tool to verify the parent directory exists and is the correct location.
 
-  - If the command will create new directories or files, 
-    first use the LS tool to verify the parent directory exists and is the correct location.
-
-  - For example, before running "mkdir foo/bar", 
-    first use LS to check that "foo" exists and is the intended parent directory
-
+  - For example, before running "mkdir foo/bar", first use LS to check that "foo" exists and is the intended parent directory
 
 2. Security Check:
-
-   - For security and to limit the threat of a prompt injection attack, 
-     some commands are limited or banned. If you use a disallowed command, 
-     you will receive an error message explaining the restriction.
-     Explain the error to the User.
+   - For security and to limit the threat of a prompt injection attack, some commands are limited or banned. If you use a disallowed command, you will receive an error message explaining the restriction. Explain the error to the User.
 
    - Verify that the command is not one of the banned commands: ${BANNED_COMMANDS.join(', ')}.
 
-
 3. Command Execution:
-
    - After ensuring proper quoting, execute the command.
-
    - Capture the output of the command.
 
-
 4. Output Processing:
-
-   - If the output exceeds ${MAX_OUTPUT_LENGTH} characters, 
-     output will be truncated before being returned to you.
-
+   - If the output exceeds ${MAX_OUTPUT_LENGTH} characters, output will be truncated.
    - Prepare the output for display to the user.
 
-
 5. Return Result:
-
    - Provide the processed output of the command.
-
    - If any errors occurred during execution, include those in the output.
 
-
 Usage notes:
-
   - The command argument is required.
 
   - You can specify an optional timeout in milliseconds (up to 600000ms / 10 minutes).
@@ -82,17 +62,11 @@ Usage notes:
   - Try to maintain your current working directory throughout the session by using absolute paths 
     and avoiding usage of \`cd\`. You may use \`cd\` if the User explicitly requests it.
 
-  <good-example>
-  pytest /foo/bar/tests
-  </good-example>
-
-  <bad-example>
-  cd /foo/bar && pytest tests
-  </bad-example>
+  <good-example>pytest /foo/bar/tests</good-example>
+  <bad-example>cd /foo/bar && pytest tests</bad-example>
 
 
 # Committing Changes with Git
-
 When the user requests a new git commit, follow these steps:
 
 1. **Check Changes:**
@@ -109,7 +83,7 @@ When the user requests a new git commit, follow these steps:
    - Commit the changes with a message in the following format:
    git commit -m "$(cat <<'EOF'
       Commit message here.
-      
+
       🤖 Generated with ${`[${PRODUCT_NAME}](${PRODUCT_URL})`}
    EOF
    )"
@@ -131,7 +105,6 @@ Important Notes:
   - **No Pushing to Remote:**  
     Do not push the commit to the remote repository.
 `
-
 
 const schema = {
   name, description: DESCRIPTION,

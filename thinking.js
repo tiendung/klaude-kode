@@ -8,16 +8,10 @@ Really good to solve hard problem that cannot be solved normally.
 
 Usage: Provide a clear problem statement.
 
-Example:
-
-k -c brainstorming how should we make abc.js more concise? follow api.js style, apply the changes right after.
-
+Examples:
 k -c explain how file-edit.js work
-
-Parameters:
-- prompt (required): The problem or task to think about
-- temperature (optional): Controls randomness (0.6-0.65)
-- max_tokens (optional): Maximum output length
+k -c brainstorming how should we make abc.js more concise? follow api.js style, apply the changes right after.
+k -c sử dụng think tool đánh giá toàn bộ codebase xem có confict / thừa / thiếu / đoạn nào cần sửa đổi?
 `;
 
 const schema = {
@@ -27,7 +21,7 @@ const schema = {
     properties: {
       prompt: { type: "string", description: "The problem or task to think about" },
       model: { type: "string", default: "deepseek-ai/DeepSeek-R1" },
-      temperature: { type: "number", default: 0.6 },
+      temperature: { type: "number", description: "Controls randomness (0.6-0.65)", default: 0.6 },
       max_tokens: { type: "number", default: 8000 }
     }
   }
