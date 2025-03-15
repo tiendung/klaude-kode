@@ -14,6 +14,7 @@ A lightweight CLI tool for interacting with Claude AI for coding tasks, implemen
 - Node.js
 - Bun runtime
 - Anthropic API key (set via ANTHROPIC_API_KEY environment variable)
+- Together API key (set via TOGETHER_API_KEY environment variable) for ThinkingTool
 
 ## Project Structure
 - `index.js`: CLI entry point
@@ -30,6 +31,7 @@ A lightweight CLI tool for interacting with Claude AI for coding tasks, implemen
 6. GlobTool: Find files by pattern
 7. LSTool: List directory contents
 8. AgentTool: Complex task execution
+9. ThinkingTool: Planning, solve hard problem, coding, debugging
 
 ## Common Commands
 ```bash
@@ -41,6 +43,9 @@ node index.js -l
 
 # Run with custom prompt
 node index.js -p "commit changes"
+
+# Use ThinkingTool for complex problem-solving
+node index.js -p "Use ThinkingTool to solve this problem: <problem description>"
 ```
 
 ## Development Notes
@@ -118,3 +123,4 @@ SOURCE FILES:
 - ls.js
 - persistent_shell.js
 - prompts.js
+- thinking.js
