@@ -80,7 +80,7 @@ function extractFilePaths(prompt) {
 async function getAllFiles() {
   const entries = await fs.readdir('.', { withFileTypes: true });
   return entries
-    .filter(entry => !entry.isDirectory() && (entry.name.endsWith('.md') || entry.name.endsWith('.js')))
+    .filter(entry => !entry.isDirectory() && (entry.name.endsWith('CLAUDE.md') || entry.name.endsWith('.js')))
     .map(entry => entry.name);
 }
 
