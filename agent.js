@@ -20,7 +20,6 @@ Usage notes:
 4. Agent's outputs should be trusted
 `;
 
-// Simplified tool import with arrow function
 const getAvailableTools = async () => Promise.all([
   import('./grep.js'),
   import('./glob.js'),
@@ -66,7 +65,7 @@ const getAgentPrompt = async () => [
   await getEnvInfo()
 ];
 
-const getEnvInfo = async () => {
+export const getEnvInfo = async () => {
   const gitStatus = await isGit();
   return `Here is useful environment information:\n<env>\nWorking directory: ${getCwd()}\nIs directory a git repo: ${gitStatus ? 'Yes' : 'No'}\nPlatform: ${process.platform}\nToday's date: ${new Date().toLocaleDateString()}\n</env>`;
 };

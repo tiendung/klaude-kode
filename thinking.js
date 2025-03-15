@@ -11,7 +11,6 @@ Usage: Provide a clear problem statement.
 Examples:
 k -c explain how file-edit.js work
 k -c brainstorming how should we make abc.js more concise? follow api.js style, apply the changes right after.
-k -c sử dụng think tool đánh giá toàn bộ codebase xem có confict / thừa / thiếu / đoạn nào cần sửa đổi?
 `;
 
 const schema = {
