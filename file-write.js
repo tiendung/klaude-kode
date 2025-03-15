@@ -5,7 +5,7 @@ const name = 'FileWriteTool';
 const MAX_LINES = 16000;
 const TRUNC_MSG = '<truncated>';
 
-const DESCRIPTION = `Write/create files. Use absolute paths. Prefer FileEditTool for modifications.`;
+const DESCRIPTION = `Write/create files. Use absolute paths.`;
 
 const schema = {
   name, description: DESCRIPTION,
