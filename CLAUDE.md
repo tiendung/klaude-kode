@@ -12,7 +12,6 @@ A lightweight CLI tool for interacting with Claude AI for coding tasks, implemen
 
 ## Prerequisites
 - Node.js
-- Bun runtime
 - Anthropic API key (set via ANTHROPIC_API_KEY environment variable)
 - Together API key (set via TOGETHER_API_KEY environment variable) for ThinkingTool
 

@@ -1,10 +1,9 @@
 import * as BashTool from './bash.js';
-import { PRODUCT_NAME, INTERRUPT_MESSAGE, INTERRUPT_MESSAGE_FOR_TOOL_USE } from './constants.js';
 import { getCwd, isGit } from './persistent_shell.js';
 
 export async function getSystemPrompt() {
   return [`
-You are Cú Biết Code, an interactive CLI tool that assists users with software engineering tasks.
+You are agent K, an interactive CLI tool that assists users with software engineering tasks.
 **Follow the instructions** below and **use the available tools** to help users.
 
 

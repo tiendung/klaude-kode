@@ -39,7 +39,7 @@ const handler = async (toolCall) => {
   const { prompt } = toolCall.input;
   const startTime = Date.now();
   const tools = await getAvailableTools();
-  const systemPrompt = getAgentPrompt();
+  const systemPrompt = await getAgentPrompt();
   const result = await query({ userPrompt: prompt, tools, systemPrompt, model: SMALL_MODEL, maxTokens: 1024 });
 
   // Compact response processing
@@ -59,24 +59,21 @@ const handler = async (toolCall) => {
   return { summary, output: finalResponse || "Agent completed the task, but no text response." };
 };
 
-// Compact env info with template literals and arrow function
-const getAgentPrompt = () => [
+// Async agent prompt generation
+const getAgentPrompt = async () => [
   `You are a coding agent. Given the user's prompt, use available tools to answer concisely.
 
 Notes:
 1. Be direct, one-word answers preferred. Avoid explanations.
 2. Share relevant file names and code snippets.
 3. Use absolute file paths.`,
-  getEnvInfo()
+  await getEnvInfo()
 ];
 
-// Simplified environment info function
-const getEnvInfo = () => `Here is useful environment information:
-<env>
-Working directory: ${getCwd()}
-Is directory a git repo: ${isGit ? 'Yes' : 'No'}
-Platform: ${process.platform}
-Today's date: ${new Date().toLocaleDateString()}
-</env>`;
+// Async environment info function
+const getEnvInfo = async () => {
+  const gitStatus = await isGit();
+  return `Here is useful environment information:\n<env>\nWorking directory: ${getCwd()}\nIs directory a git repo: ${gitStatus ? 'Yes' : 'No'}\nPlatform: ${process.platform}\nToday's date: ${new Date().toLocaleDateString()}\n</env>`;
+};
 
 export { name, schema, handler };
