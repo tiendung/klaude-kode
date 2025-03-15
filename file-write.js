@@ -1,19 +1,17 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { dirname, isAbsolute, relative } from 'path';
 
-const name = 'FileWriteTool';
+const name = "FileWriteTool";
 const MAX_LINES = 16000;
 const TRUNC_MSG = '<truncated>';
 
-const DESCRIPTION = `Write/create files. Use absolute paths.`;
-
 const schema = {
-  name, description: DESCRIPTION,
+  name, description: 'Write a file to the local filesystem.',
   parameters: {
     type: "object", required: ["file_path", "content"],
     properties: {
-      file_path: { type: "string", description: "Absolute file path" },
-      content: { type: "string", description: "Content to write" }
+      file_path: { type: "string", description: "The absolute path to the file to write (not relative)" },
+      content: { type: "string", description: "The content to write to the file" }
     }
   }
 };
