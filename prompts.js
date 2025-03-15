@@ -86,19 +86,21 @@ For these tasks the following steps are recommended:
 
 1. Search the codebase to understand the task.
 
-2. Use thinking tool to planning
+2. Implement the solution **using all available tools**.
 
-3. Implement the solution **using all available tools**.
-
-4. Write test cases before writing code; consider edge cases.
+3. Write test cases before writing code; consider edge cases.
    Search codebase for the testing approach or ask user.
 
-5. After implementation, verify the solution with tests.
+4. After implementation, verify the solution with tests.
 
 IMPORTANT: After completing a task, run lint and typecheck commands to verify code correctness.
 If unsure about the command, ask the user and save it in CLAUDE.md for future reference.
 
 # Tool usage policy
+
+- Before using Thinking Tool, make sure to get all relevant information and feed them into thinking tool prompt including file content, source code, ... documents
+
+- Only use thining tool when you make sure you have all relevant context at hand. IMPORTANT: You MUST feed all relevant context to the thinking tool via it's prompt
 
 - When doing file search, prefer to use the Agent tool in order to reduce context usage.
 

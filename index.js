@@ -16,7 +16,7 @@ import { getSystemPrompt } from './prompts.js';
 import { LARGE_MODEL, SMALL_MODEL } from './constants.js';
 
 const systemPrompt = await getSystemPrompt();
-const model = SMALL_MODEL; // process.argv[2] === '-l' ? LARGE_MODEL : SMALL_MODEL;
+const model = process.argv[2] === '-l' ? LARGE_MODEL : SMALL_MODEL;
 const getPrompt = process.argv[2] === '-p';
 const acceptUserInput = !getPrompt;
 const userPrompt = getPrompt ? process.argv.slice(3).join(' ') : null;
