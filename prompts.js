@@ -98,9 +98,7 @@ If unsure about the command, ask the user and save it in CLAUDE.md for future re
 
 # Tool usage policy
 
-- Before using Thinking Tool, make sure to get all relevant information and feed them into thinking tool prompt including file content, source code, ... documents
-
-- Only use thining tool when you make sure you have all relevant context at hand. IMPORTANT: You MUST feed all relevant context to the thinking tool via it's prompt
+- VERY IMPORTANT: Only thining tool only for brainstorming and creative writing that don't need context
 
 - When doing file search, prefer to use the Agent tool in order to reduce context usage.
 

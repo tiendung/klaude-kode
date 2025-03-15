@@ -2,31 +2,18 @@ import fetch from 'node-fetch';
 import { promises as fs } from 'fs';
 import path from 'path';
 
+// how can we improve thinking.js?
 const name = "ThinkingTool";
 const DESCRIPTION = `
-A thinking tool that helps to brainstorm and solve hard or creative problems
-including coding / debugging and planning tasks.
+A thinking tool that helps to brainstorm and creative writing only.
+Don't use thinking tool to code related tasks.
 
 Usage:
-Provide a clear problem statement or question with full context.
+Provide a clear problem statement only
 
-VERY IMPORTANT: thinking tool cannot use tools so you have to to get all relevant context to the problem / task before give them all to thinking tool:
-  - read all related files
-  - find all relevant informatio from current codebase
-  - add them all to the thinking tool prompt
-
-<good example>
-user: how can we improve current codebase?
-assistant: [read all codebase first] ThinkingTool: {"prompt":" \${all source code as problem context} Analyze the koding.js project for potential improvements"}
-</good example>
-
-<bad example>
-user: how can we improve current codebase?
-</bad example>
-assistant: ThinkingTool: {"prompt":"Analyze the koding.js project for potential improvements" } // call thinking tool immediately
 
 Parameters:
-- prompt (required): The problem or task to think about and all relevent context
+- prompt (required): The problem or task to think about
 - temperature (optional): Controls randomness (0.6-0.65)
 - max_tokens (optional): Maximum output length
 `;
