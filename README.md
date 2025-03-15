@@ -5,7 +5,6 @@ A lightweight, dependency-free CLI tool for AI-assisted coding tasks, designed t
 ## ✨ Core Philosophy
 
 - **Minimalist Design**: Every line of code serves a purpose
-- **Zero External Dependencies**: Pure, self-contained functionality
 - **Security-First**: Sandboxed shell execution and command validation
 - **Rapid AI Interaction**: Fast, stateful CLI for coding tasks
 
@@ -15,6 +14,7 @@ A lightweight, dependency-free CLI tool for AI-assisted coding tasks, designed t
 - Atomic file operations (read/write/edit)
 - AI-powered file search and task automation
 - Secure, context-aware tool chaining
+- ThinkingTool for hard problem solving
 
 ## 🚀 Prerequisites
 
@@ -58,20 +58,6 @@ node index.js -p "Think to solve: <complex coding challenge>"
 3. **SearchTools**: Regex and glob file searching
 4. **AgentTool**: Parallel task solving
 5. **ThinkingTool**: Advanced reasoning and brainstorming
-
-## 🔍 Project Structure
-
-- Total source code: <2000 lines
-- No external runtime dependencies
-- Modular, functional design
-- Typescript-like typing with JSDoc
-
-## 🛡️ Security Principles
-
-- Command validation
-- No shell injection risks
-- Restricted tool execution
-- Ephemeral agent instantiation
 
 ## 🤝 Contribution
 
