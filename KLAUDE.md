@@ -33,10 +33,6 @@ node index.js -p "commit changes"
 2. FileReadTool
 3. FileWriteTool
 4. FileEditTool
-5. GrepTool
-6. GlobTool
-7. LSTool
-8. ~~AgentTool~~ (Removed)
 9. ThinkingTool
 
 ## Humor in Commit Messages 🤖

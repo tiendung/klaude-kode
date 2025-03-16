@@ -1,34 +1,33 @@
-# Koding.js 🤖
-
-A lightweight CLI tool for AI-assisted coding tasks, designed to stay under 2000 lines of code.
+# Agent K 🤖
+Minimal CLI tool for AI-assisted coding and multi-purpose tasks.
+Simple (under 2000 lines of code) and easy to use and extend (see `thinking.js` tool).
 
 ## ✨ Core Philosophy
-
-- **Minimalist Design**: Every line of code serves a purpose
-- **Security-First**: Sandboxed shell execution and command validation
+- **Minimalist Design**: Every line of code serves a purpose; every token counts.
 - **Rapid AI Interaction**: Fast, stateful CLI for coding tasks
+- **Multi-purpose and extensible**: Just add tools.
 
-## 🛠 Key Features
+## 🧰 Available Tools
+1. **BashTool**: Secure shell command execution (can do virtually anything)
+2. **FileTools**: Atomic file read/write/edit
+3. **ThinkingTool**: Advanced reasoning and brainstorming
 
-- Persistent shell session management
-- Atomic file operations (read/write/edit)
-- AI-powered file search and task automation
-- Secure, context-aware tool chaining
-- ThinkingTool for hard problem solving
+### 🌟 Context Expansion
+- Dynamically inject file contents into system prompt (for caching)
+- Support for single files, multiple files
+- Glob pattern matching (e.g., `*.js`, `src/**/*.ts`)
+- Automatically handles file reading and error scenarios
 
 ## 🚀 Prerequisites
-
 - Node.js
 - Anthropic API Key
 - (Optional) Together API Key for advanced reasoning
 
 ## 🔧 Installation & Setup
-
 ```bash
 # Clone the repository
 git clone https://github.com/tiendung/koding.js
-cd koding.js
-npm install
+cd koding.js && npm install
 
 # Set API keys
 export ANTHROPIC_API_KEY=your_anthropic_key
@@ -36,7 +35,6 @@ export TOGETHER_API_KEY=your_together_key  # Optional
 ```
 
 ## 💻 Usage Examples
-
 ```bash
 # Interactive mode with small model
 node index.js
@@ -64,26 +62,9 @@ node index.js -p "<context>*.js</context> List and explain all JavaScript files"
 node index.js -p "<context>src/**/*.ts</context> Audit TypeScript files"
 ```
 
-### 🌟 Context Expansion
-- Dynamically inject file contents into prompts
-- Support for single files, multiple files
-- Glob pattern matching (e.g., `*.js`, `src/**/*.ts`)
-- Automatically handles file reading and error scenarios
-
-## 🧰 Available Tools
-
-1. **BashTool**: Secure shell command execution
-2. **FileTools**: Atomic file read/write/edit
-3. **SearchTools**: Regex and glob file searching
-4. ~~**AgentTool**: Parallel task solving~~ (Removed)
-5. **ThinkingTool**: Advanced reasoning and brainstorming
-
 ## 🤝 Contribution
-
 Contributions welcome! Please keep PRs minimal and focused.
 
 ## 📄 License
-
 MIT License
-
 *Crafted with ❤️ for developers who love clean, efficient tools*
