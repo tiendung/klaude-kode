@@ -9,45 +9,13 @@ const tools = [Bash, FileEdit, FileRead, FileWrite, ...(process.env.TOGETHER_API
 import { query } from './api.js';
 import { LARGE_MODEL, SMALL_MODEL } from './constants.js';
 
-// Enhanced context extraction utilities
-const extractAllContexts = (str) => {
-  const regex = /<context>(.*?)<\/context>/g;
-  return [...str.matchAll(regex)].map(match => ({ full: match[0], content: match[1].trim(), 
-  	startIdx: match.index, endIdx: match.index + match[0].length }));
-};
-
-const expandContext = async (ctxStr) => {
-  try {
-    const globResult = await Glob.handler({  input: { pattern: ctxStr, path: process.cwd() } });
-    if (!globResult.files?.length) { return `<context>No files matching: ${ctxStr}</context>`; }
-
-    const fileContents = await Promise.all(
-      globResult.files.map(async (filePath) => {
-        ( await FileRead.handler({ input: { file_path: filePath } }) ).error 
-          ? `<file name="${filePath}" error="${readResult.error}"/>`
-          : `<file name="${filePath}">${readResult.content}</file>`;
-      })
-    );
-    return `<context pattern="${ctxStr}">\n${fileContents.join('\n')}\n</context>`;
-  } catch (error) { return `<context pattern="${ctxStr}" error="${error.message}"/>`; }
-};
-
-let globalContext = [];
-const processUserInput = async (userInput) => {
-  let processedInput = userInput;
-  const contexts = extractAllContexts(userInput).reverse(); // Process last-first
-  globalContext = await Promise.all( contexts.map(async (ctx) => await expandContext(ctx.content)) );
-  // Keep the context tags in the processed input
-  return processedInput;
-};
-
 const systemPrompt = await getSystemPrompt();
 const model = process.argv[2] === '-l' ? LARGE_MODEL : SMALL_MODEL;
 const getPrompt = process.argv[2] === '-p';
 const getCustomPrompt = process.argv[2] === '-c';
 const acceptUserInput = getCustomPrompt || !getPrompt;
 const userInput = process.argv.slice(3).join(' ');
-const userPrompt = getPrompt || getCustomPrompt ? await processUserInput(userInput) : null;
+const userPrompt = getPrompt || getCustomPrompt ? userInput : null;
 
 await query({ userPrompt, tools, systemPrompt, acceptUserInput, model, shouldExit: true })
   .catch(error => console.error("Error:", error));

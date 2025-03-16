@@ -47,16 +47,6 @@ node index.js -p "Refactor authentication middleware"
 
 # Use ThinkTool for complex problems
 node index.js -p "Think to solve: <complex coding challenge>"
-
-# 🆕 Context Expansion Feature
-# Multiple files
-node index.js -p "<context>file-edit.js file-write.js</context> Compare implementations"
-
-# Wildcard file pattern
-node index.js -p "<context>*.js</context> List and explain all JavaScript files"
-
-# Nested directory search
-node index.js -p "<context>src/**/*.ts</context> Audit TypeScript files"
 ```
 
 ## 🤝 Contribution
