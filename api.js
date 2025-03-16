@@ -1,20 +1,47 @@
 import { SMALL_MODEL, LARGE_MODEL } from './constants.js';
+import { writeFile } from 'fs/promises';
 import promptSync from 'prompt-sync';
 const prompt = promptSync();
 
-export async function api({ messages, tools, systemPrompt, model, maxTokens = 1024 }) {
+function cacheControl(messages) {
+  let lastContent = messages.at(-1).content;
+  if (typeof lastContent === "object") {
+    lastContent = lastContent.at(-1); 
+    lastContent.cache_control = {type: "ephemeral"}; // prompt cache the last message
+  } else messages.at(-1).content = [{type: "text", text: lastContent, cache_control: {type: "ephemeral"}}];
+  console.log(messages);
+}
+const maxCacheControls = 4; // SMALL_MODEL have 4 cache controls
+var ccc = 0, lastCacheUsedToken;
+let maxUncached = [ 0, 2000, 3000, 4000 ]; // last cache at 12k tokens
+
+export async function api({ messages, tools, systemPrompt, model, maxTokens = 1024, usedTokens = 0 }) {
   const url = "https://api.anthropic.com/v1/messages";
   const headers = {
     "content-type": "application/json",
     "x-api-key": process.env.ANTHROPIC_API_KEY,
     "anthropic-version": "2023-06-01",
   };
-
-  if (model == LARGE_MODEL) headers["anthropic-beta"] = "token-efficient-tools-2025-02-19";
   const system = systemPrompt.map(prompt => ({ type: "text", text: prompt }));
-  tools.at(-1).cache_control = {type: "ephemeral"}; // 1st cache_control
 
+  if (model === LARGE_MODEL) {
+    headers["anthropic-beta"] = "token-efficient-tools-2025-02-19";
+    cacheControl(messages);
+  } else { // SMALL_MODEL
+    if (ccc === 0) {
+      ccc = 1;
+      cacheControl(messages); // 1st cache_control
+      lastCacheUsedToken = 3000; // ước chừng, cần tính chi tiết
+    }
+    const uncached = usedTokens - lastCacheUsedToken;
+    if (ccc < maxCacheControls && uncached > maxUncached[ccc]) { 
+      ccc += 1; lastCacheUsedToken = usedTokens;
+      cacheControl(messages); 
+    }
+  }
   const body = JSON.stringify({ system, model, messages, tools, max_tokens: maxTokens });
+  writeFile('./llm_call.json', body);
+
   const response = await fetch(url, {method: "POST", headers, body});
 
   if (!response.ok) {
@@ -38,17 +65,6 @@ const log = (block) => {
   (logTypes[typeof block] || (b => console.log(b)))(block);
 };
 
-
-function cacheControl(messages) {
-  let lastContent = messages.at(-1).content;
-  if (typeof lastContent === "object") {
-    lastContent = lastContent.at(-1); 
-    lastContent.cache_control = {type: "ephemeral"}; // Always prompt cache the last message
-  } else messages.at(-1).content = [{type: "text", text: lastContent, cache_control: {type: "ephemeral"}}];
-}
-const maxCacheControls = 3; // SMALL_MODEL only have 3 left
-let ccc = 1; // cache control count: use 1 at sys prompt + tool cache
-
 export async function query({ userPrompt, tools, systemPrompt, shouldExit = false,
   model = SMALL_MODEL, maxTokens = 1024, acceptUserInput = false }) {
   let messages = [];
@@ -67,20 +83,18 @@ export async function query({ userPrompt, tools, systemPrompt, shouldExit = fals
     name: tool.name, description: tool.schema.description,
     input_schema: tool.schema.input_schema || tool.schema.parameters,
   }));
-  
+
+  let usedTokens = 0;
   while (true) { // Main tool use loop
-    const apiResponse = await api({ messages, tools: toolSchema, systemPrompt, model, maxTokens });
+    const apiResponse = await api({ messages, tools: toolSchema, systemPrompt, model, maxTokens, usedTokens });
     const assistantMessage = { role: apiResponse.role, content: apiResponse.content };
     messages.push(assistantMessage);
     log(assistantMessage);
 
     let u = apiResponse.usage;
-    const total = u.input_tokens + u.output_tokens + u.cache_read_input_tokens;
+    usedTokens = u.input_tokens + u.output_tokens + u.cache_read_input_tokens;
     u = `${apiResponse.model} (i_${u.input_tokens} o_${u.output_tokens} c_${u.cache_read_input_tokens})`;
     console.log(`\x1b[35m${u}\x1b[0m`);
-
-    if (model === LARGE_MODEL) { cacheControl(messages) }
-    else if (ccc < maxCacheControls && total > ccc*5000) { ccc += 1; cacheControl(messages); }
 
     const toolCalls = apiResponse.content?.filter(block => block.type === 'tool_use') || [];
     if (toolCalls.length === 0) { 
