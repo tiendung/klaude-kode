@@ -1,6 +1,6 @@
 # Agent K 🤖
 Minimal CLI tool for AI-assisted coding and multi-purpose tasks.
-Simple (under 2000 lines of code) and easy to use and extend (see `thinking.js` tool).
+Simple (under 2000 lines of code) and easy to use and extend (see `think.js` tool).
 
 ## ✨ Core Philosophy
 - **Minimalist Design**: Every line of code serves a purpose; every token counts.
@@ -10,7 +10,7 @@ Simple (under 2000 lines of code) and easy to use and extend (see `thinking.js` 
 ## 🧰 Available Tools
 1. **BashTool**: Secure shell command execution (can do virtually anything)
 2. **FileTools**: Atomic file read/write/edit
-3. **ThinkingTool**: Advanced reasoning and brainstorming
+3. **ThinkTool**: Advanced reasoning and brainstorming
 
 ### 🌟 Context Expansion
 - Dynamically inject file contents into system prompt (for caching)
@@ -45,7 +45,7 @@ node index.js -l
 # Run specific task
 node index.js -p "Refactor authentication middleware"
 
-# Use ThinkingTool for complex problems
+# Use ThinkTool for complex problems
 node index.js -p "Think to solve: <complex coding challenge>"
 
 # 🆕 Context Expansion Feature

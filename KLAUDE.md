@@ -33,7 +33,7 @@ node index.js -p "commit changes"
 2. FileReadTool
 3. FileWriteTool
 4. FileEditTool
-9. ThinkingTool
+9. ThinkTool
 
 ## Humor in Commit Messages 🤖
 - Embrace playful, self-deprecating git commit styles

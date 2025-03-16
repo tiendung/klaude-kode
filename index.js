@@ -2,10 +2,10 @@ import * as BashTool from './bash.js';
 import * as FileEditTool from './file-edit.js';
 import * as FileReadTool from './file-read.js';
 import * as FileWriteTool from './file-write.js';
-import * as ThinkingTool from './thinking.js';
+import * as ThinkTool from './think.js';
 
 const tools = [BashTool, FileEditTool, FileReadTool, FileWriteTool, 
-	 ...(process.env.TOGETHER_API_KEY ? [ThinkingTool] : [])];
+	 ...(process.env.TOGETHER_API_KEY ? [ThinkTool] : [])];
 
 import { query } from './api.js';
 import { LARGE_MODEL, SMALL_MODEL } from './constants.js';
@@ -94,7 +94,7 @@ Store any relevant commands, code styles, or important codebase details in KLAUD
 4. Verify with tests
     
 # Tool usage policy
-- Use function_calls block for independent tool calls`,
+- Use function_calls block for independent tool calls (multiple read for examples)`,
     `\n${await getMemory()}`,
     `\n${await getEnvInfo()}`,
   ];

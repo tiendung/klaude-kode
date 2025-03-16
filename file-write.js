@@ -5,8 +5,8 @@ const name = "FileWriteTool";
 const MAX_LINES = 16000;
 const TRUNC_MSG = '<truncated>';
 
-const schema = {
-  name, description: `Write / create a file to the local filesystem. Don't use for anything else`,
+const schema = { // test prompt: k -c apply api.js concise style into think.js
+  name, description: `Write the whole a file or create a brand new file. Forc content related action like edit, replace, change ... use file edit tool to avoid errors. For examples: FileWriteError: WriteOperation Cannot read properties of undefined (reading 'replace') was caused by using file write to edit text / code`,
   parameters: {
     type: "object", required: ["file_path", "content"],
     properties: {
@@ -75,9 +75,7 @@ const handler = async ({ input: { file_path, content } }) => {
       filePath: relative(cwd, file_path),
       preview: `New file created with ${truncated.length} bytes`
     };
-  } catch (error) {
-    return handleError(error, 'WriteOperation');
-  }
+  } catch (error) { return handleError(error, 'WriteOperation'); }
 };
 
 export { name, schema, handler };

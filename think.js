@@ -1,7 +1,8 @@
 import fetch from 'node-fetch';
 import { promises as fs } from 'fs';
+import { execSync } from 'child_process';
 
-const name = "ThinkingTool";
+const name = "ThinkTool";
 const DESCRIPTION = `
 A thinking tool that helps to brainstorm, write creatively, code, program, plan, debugs, explain things. 
 Really good to solve hard problem that cannot be solved normally.
@@ -38,6 +39,51 @@ const getAllFiles = async () => {
     .map(entry => entry.name);
 };
 
+const MAX_DIFF_LENGTH = 10000; // ~10k characters
+
+function getStagedDiff() {
+  try {
+    const diff = execSync('git diff --cached --no-color', { encoding: 'utf8' });
+    return processDiff(diff, 'staged');
+  } catch (error) {
+    return {  diff: `Error: ${error.message}`, summary: { error: true, files: 0, additions: 0, deletions: 0 } };
+  }
+}
+
+function getUnstagedDiff() {
+  try {
+    const diff = execSync('git diff --no-color', { encoding: 'utf8' });
+    return processDiff(diff, 'unstaged');
+  } catch (error) {
+    return { diff: `Error: ${error.message}`, summary: { error: true, files: 0, additions: 0, deletions: 0 } };
+  }
+}
+
+function processDiff(rawDiff, type) {
+  const lines = rawDiff.split('\n');
+  let additions = 0, deletions = 0;
+  
+  lines.forEach(line => {
+    if (line.startsWith('+') && !line.startsWith('+++')) additions++;
+    if (line.startsWith('-') && !line.startsWith('---')) deletions++;
+  });
+
+  const truncated = rawDiff.length > MAX_DIFF_LENGTH
+    ? rawDiff.slice(0, MAX_DIFF_LENGTH) + '\n... (truncated)'
+    : rawDiff;
+
+  return {
+    diff: truncated,
+    summary: {
+      type, additions, deletions,
+      files: rawDiff.match(/^diff --git/g)?.length || 0,
+      truncated: rawDiff.length > MAX_DIFF_LENGTH
+    }
+  };
+}
+
+function collectGitDiffs() { return { staged: getStagedDiff(), unstaged: getUnstagedDiff() }; }
+
 const queryTogetherAI = async ({ model, messages, temperature = 0.6, max_tokens = 8000 }) => {
   try {
     const response = await fetch("https://api.together.xyz/v1/chat/completions", {
@@ -60,17 +106,21 @@ const handler = async (toolCall) => {
     files.map(async (file) => `<file name='${file}'>${await readFileContent(file)}</file>`)
   );
   
+  const gitDiffs = collectGitDiffs();
+  const diffContext = `\n<git-diffs>\n  <staged-changes files="${gitDiffs.staged.summary.files}">\n    ${gitDiffs.staged.diff}\n  </staged-changes>\n  <unstaged-changes files="${gitDiffs.unstaged.summary.files}">\n    ${gitDiffs.unstaged.diff}\n  </unstaged-changes>\n</git-diffs>`;
+
   const messages = [
-    { role: "user", content: `<context>${fileContents.join('\n')}</context>\n\n${prompt}` },
+    { role: "user", content: `<context>${fileContents.join('\n')}</context>${diffContext}\n\n${prompt}` },
     { role: "assistant", content: "<think>\n" }
   ];
 
   const response = await queryTogetherAI({ model, messages, temperature, max_tokens });
   const fullResponse = response.choices?.[0]?.message?.content || "";
-  const [thinking, answer] = fullResponse.split('</think>').map(s => s.trim());
+  let [think, answer] = fullResponse.split('</think>').map(s => s.trim());
+  if (answer) { think += "</think>"; }
 
-  console.log(`\x1b[33m${model}:\x1b[0m\n\x1b[36mThink:\x1b[0m ${thinking}\n\x1b[32mAnswer:\x1b[0m ${answer}`);
-  return { thinking: answer || thinking, summary: "Thinking process completed"};
+  console.log(`\x1b[33m${model}:\x1b[0m ${think}\n\x1b[32m<answer>\x1b[0m${answer}\x1b[32m</answer>\x1b[0m`);
+  return { result: answer || think };
 };
 
 export { name, schema, handler };
