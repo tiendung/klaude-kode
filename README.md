@@ -49,7 +49,26 @@ node index.js -p "Refactor authentication middleware"
 
 # Use ThinkingTool for complex problems
 node index.js -p "Think to solve: <complex coding challenge>"
+
+# 🆕 Context Expansion Feature
+# Single file analysis
+node index.js -p "<context>index.js</context> Analyze this file"
+
+# Multiple file comparison
+node index.js -p "<context>src/auth.js src/middleware.js</context> Compare implementations"
+
+# Wildcard file pattern
+node index.js -p "<context>*.js</context> List and explain all JavaScript files"
+
+# Nested directory search
+node index.js -p "<context>src/**/*.ts</context> Audit TypeScript files"
 ```
+
+### 🌟 Context Expansion
+- Dynamically inject file contents into prompts
+- Support for single files, multiple files
+- Glob pattern matching (e.g., `*.js`, `src/**/*.ts`)
+- Automatically handles file reading and error scenarios
 
 ## 🧰 Available Tools
 

@@ -13,12 +13,68 @@ const tools = [BashTool, FileEditTool, FileReadTool, FileWriteTool,
 import { query } from './api.js';
 import { LARGE_MODEL, SMALL_MODEL } from './constants.js';
 
+// Enhanced context extraction utilities
+const extractAllContexts = (str) => {
+  const regex = /<context>(.*?)<\\/context>/g;
+  const matches = [...str.matchAll(regex)];
+  return matches.map(match => ({ 
+    full: match[0], 
+    content: match[1].trim(),
+    startIdx: match.index,
+    endIdx: match.index + match[0].length
+  }));
+};
+
+const expandContext = async (contextStr) => {
+  try {
+    const globResult = await GlobTool.handler({ 
+      input: { pattern: contextStr, path: process.cwd() } 
+    });
+
+    if (!globResult.files?.length) {
+      return `<context>No files matching: ${contextStr}</context>`;
+    }
+
+    const fileContents = await Promise.all(
+      globResult.files.map(async (filePath) => {
+        const readResult = await FileReadTool.handler({ input: { file_path: filePath } });
+        return readResult.error 
+          ? `<file name="${filePath}" error="${readResult.error}"/>`
+          : `<file name="${filePath}">${readResult.content}</file>`;
+      })
+    );
+    
+    return `<context pattern="${contextStr}">\n${fileContents.join('\n')}\n</context>`;
+  } catch (error) {
+    return `<context error="${error.message}"/>`;
+  }
+};
+
 const systemPrompt = await getSystemPrompt();
 const model = process.argv[2] === '-l' ? LARGE_MODEL : SMALL_MODEL;
 const getPrompt = process.argv[2] === '-p';
 const getCustomPrompt = process.argv[2] === '-c';
 const acceptUserInput = getCustomPrompt || !getPrompt;
-const userPrompt = getPrompt || getCustomPrompt ? process.argv.slice(3).join(' ') : null;
+const userInput = process.argv.slice(3).join(' ');
+// Async function to process input with context expansion
+const processUserInput = async (userInput) => {
+  let processedInput = userInput;
+  const contexts = extractAllContexts(userInput).reverse(); // Process last-first
+
+  for (const ctx of contexts) {
+    const expanded = await expandContext(ctx.content);
+    processedInput = 
+      processedInput.slice(0, ctx.startIdx) +
+      expanded +
+      processedInput.slice(ctx.endIdx);
+  }
+
+  return processedInput;
+};
+
+const userPrompt = getPrompt || getCustomPrompt ? 
+  await processUserInput(userInput) : 
+  null;
 
 // Giải thích: -c prompt giống -p ở chỗ nhập prompt từ terminal nhưng tiếp tục nói chuyện (interactive mode)
 await query({ userPrompt, tools, systemPrompt, acceptUserInput, model, shouldExit: true })
