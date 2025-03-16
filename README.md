@@ -56,7 +56,7 @@ node index.js -p "Think to solve: <complex coding challenge>"
 1. **BashTool**: Secure shell command execution
 2. **FileTools**: Atomic file read/write/edit
 3. **SearchTools**: Regex and glob file searching
-4. **AgentTool**: Parallel task solving
+4. ~~**AgentTool**: Parallel task solving~~ (Removed)
 5. **ThinkingTool**: Advanced reasoning and brainstorming
 
 ## 🤝 Contribution

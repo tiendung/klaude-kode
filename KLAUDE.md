@@ -36,7 +36,7 @@ node index.js -p "commit changes"
 5. GrepTool
 6. GlobTool
 7. LSTool
-8. AgentTool
+8. ~~AgentTool~~ (Removed)
 9. ThinkingTool
 
 ## Humor in Commit Messages 🤖

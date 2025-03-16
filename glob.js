@@ -7,8 +7,7 @@ const DESCRIPTION = `- Fast file search tool that works with any codebase size
 - Supports full glob syntax (eg. "*.js", "**/*.{ts,tsx}", "src/**/*.test.js")
 - Exclude files with the exclude parameter (eg. "node_modules/**")
 - Returns matching file paths sorted by modification time
-- Use this tool when you need to find files by name pattern
-- When you are doing an open ended search that may require multiple rounds of globbing and grepping,  use the Agent tool instead`;
+- Use this tool when you need to find files by name pattern`;
 
 const schema = {
   name, description: DESCRIPTION,

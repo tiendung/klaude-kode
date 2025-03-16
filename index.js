@@ -1,4 +1,3 @@
-import * as AgentTool from './agent.js';
 import * as BashTool from './bash.js';
 import * as FileEditTool from './file-edit.js';
 import * as FileReadTool from './file-read.js';
@@ -8,7 +7,7 @@ import * as GlobTool from './glob.js';
 import * as LSTool from './ls.js';
 import * as ThinkingTool from './thinking.js';
 
-const tools = [AgentTool, BashTool, FileEditTool, FileReadTool, FileWriteTool, 
+const tools = [BashTool, FileEditTool, FileReadTool, FileWriteTool, 
 	GrepTool, GlobTool, LSTool, ...(process.env.TOGETHER_API_KEY ? [ThinkingTool] : [])];
 
 import { query } from './api.js';
@@ -26,7 +25,7 @@ await query({ userPrompt, tools, systemPrompt, acceptUserInput, model, shouldExi
   .catch(error => console.error("Error:", error));
 
 import { readFile } from 'fs/promises';
-import { getEnvInfo } from './agent.js';
+// Removed agent.js import
 
 export async function getSystemPrompt() {
   return [`You are agent K, an interactive CLI tool that assists users with software engineering tasks.
@@ -66,10 +65,10 @@ Store any relevant commands, code styles, or important codebase details in KLAUD
 4. Verify with tests
     
 # Tool usage policy
-- Prefer Agent tool for file searches
 - Use function_calls block for independent tool calls`,
+    
+    `\n${await getMemory()}`,
     `\n${await getEnvInfo()}`,
-    `\n${await getMemory()}`
   ];
 }
 
@@ -78,4 +77,26 @@ export async function getMemory() {
     const content = await readFile(process.cwd() + '/KLAUDE.md', 'utf8');
     return `<memory>\n${content}\n</memory>`;
   } catch { return '<memory>No KLAUDE.md found in the working directory.</memory>'; }
+}
+
+export async function getEnvInfo() {
+  const envInfo = {
+    workingDirectory: process.cwd(),
+    platform: process.platform,
+    nodeVersion: process.version,
+    isGitRepo: await checkIfGitRepo(),
+    date: new Date().toISOString().split('T')[0]
+  };
+
+  return `\n# Environment Information\n${Object.entries(envInfo)
+    .map(([key, value]) => `- **${key}**: ${value}`)
+    .join('\n')}`;
+}
+
+async function checkIfGitRepo() {
+  try {
+    const { execSync } = await import('child_process');
+    execSync('git rev-parse --is-inside-work-tree', { stdio: 'ignore' });
+    return true;
+  } catch { return false; }
 }

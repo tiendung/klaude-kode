@@ -2,7 +2,6 @@ import * as FileReadTool from './file-read.js';
 import * as LSTool from './ls.js';
 import * as GrepTool from './grep.js';
 import * as GlobTool from './glob.js';
-import * as AgentTool from './agent.js';
 import { PRODUCT_NAME, PRODUCT_URL } from './constants.js';
 import { PersistentShell } from './persistent_shell.js';
 import { isAbsolute, resolve } from 'path';
@@ -11,7 +10,6 @@ import { statSync } from 'fs';
 const name = "BashTool";
 const BANNED_COMMANDS = ['alias', 'curl', 'wget', 'nc', 'telnet', 'lynx', 'httpie', 'xh', 'chrome', 'firefox'];
 const MAX_OUTPUT_LENGTH = 30_000, MAX_RENDERED_LINES = 50;
-
 const DESCRIPTION = `Executes a given bash command in a persistent shell session with optional timeout, ensuring proper handling and security measures. Before executing the command, please follow these steps:
 
 1. Directory Verification:
@@ -37,7 +35,7 @@ const DESCRIPTION = `Executes a given bash command in a persistent shell session
 Usage notes:
   - The command argument is required.
   - You can specify an optional timeout in milliseconds (up to 600000ms / 10 minutes). If not specified, commands will timeout after 30 minutes.
-  - VERY IMPORTANT: You MUST avoid using search commands like \`find\` and \`grep\`.  Instead use ${GrepTool.name}, ${GlobTool.name}, or ${AgentTool.name} to search.
+  - VERY IMPORTANT: You MUST avoid using search commands like \`find\` and \`grep\`.  Instead use ${GrepTool.name}, ${GlobTool.name} to search.
   - VERY IMPORTANT: You MUST avoid read tools like \`cat\`, \`head\`, \`tail\`, and \`ls\`, and use ${FileReadTool.name} and ${LSTool.name} to read files.
   - When issuing multiple commands, use the ';' or '&&' operator to separate them. DO NOT use newlines (newlines are ok in quoted strings).
   - IMPORTANT: All commands share the same shell session.  Shell state (environment variables, virtual environments, current directory, etc.) persist between commands.
