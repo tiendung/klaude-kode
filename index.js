@@ -2,13 +2,10 @@ import * as BashTool from './bash.js';
 import * as FileEditTool from './file-edit.js';
 import * as FileReadTool from './file-read.js';
 import * as FileWriteTool from './file-write.js';
-import * as GrepTool from './grep.js';
-import * as GlobTool from './glob.js';
-import * as LSTool from './ls.js';
 import * as ThinkingTool from './thinking.js';
 
 const tools = [BashTool, FileEditTool, FileReadTool, FileWriteTool, 
-	GrepTool, GlobTool, LSTool, ...(process.env.TOGETHER_API_KEY ? [ThinkingTool] : [])];
+	 ...(process.env.TOGETHER_API_KEY ? [ThinkingTool] : [])];
 
 import { query } from './api.js';
 import { LARGE_MODEL, SMALL_MODEL } from './constants.js';
