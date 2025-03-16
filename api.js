@@ -10,10 +10,8 @@ export async function api({ messages, tools, systemPrompt, model, maxTokens = 10
     "anthropic-version": "2023-06-01",
   };
 
-  // Add beta header for large model
   if (model == LARGE_MODEL) headers["anthropic-beta"] = "token-efficient-tools-2025-02-19";
 
-  // Format system prompts and apply token efficiency
   const system = systemPrompt.map(prompt => ({ type: "text", text: prompt }));
   system.at(-1).cache_control = {type: "ephemeral"};
   tools.at(-1).cache_control = {type: "ephemeral"};
@@ -28,8 +26,6 @@ export async function api({ messages, tools, systemPrompt, model, maxTokens = 10
   return await response.json();
 }
 
-
-// Compact logging function for different content types
 const log = (block) => {
   const logTypes = {
     string: (b) => console.log(b),
@@ -44,7 +40,6 @@ const log = (block) => {
   (logTypes[typeof block] || (b => console.log(b)))(block);
 };
 
-
 export async function query({ userPrompt, tools, systemPrompt, shouldExit = false,
   model = SMALL_MODEL, maxTokens = 1024, acceptUserInput = false }) {
   let messages = [];
@@ -56,35 +51,28 @@ export async function query({ userPrompt, tools, systemPrompt, shouldExit = fals
     if (input === "q") process.exit(); // [q]uit program
   }
 
-  // Initialize messages based on user input mode
   if (acceptUserInput && userPrompt === null) userInput();
   else messages.push({ role: "user", content: [{ type: "text", text: userPrompt }] });
 
-  // Compact tool schema transformation
   const toolSchema = tools.map(tool => ({
     name: tool.name, description: tool.schema.description,
     input_schema: tool.schema.input_schema || tool.schema.parameters,
   }));
   
-  // Main tool use loop
-  while (true) { 
+  while (true) { // Main tool use loop
     const apiResponse = await api({ messages, tools: toolSchema, systemPrompt, model, maxTokens });
     const assistantMessage = { role: apiResponse.role, content: apiResponse.content };
     messages.push(assistantMessage);
     log(assistantMessage);
 
-    // Compact token usage logging
-    const u = apiResponse.usage;
-    const usageInfo = `${apiResponse.model} (i: ${u.input_tokens}, o: ${u.output_tokens}, c: ${u.cache_read_input_tokens})`;
-    console.log(`\x1b[35m${usageInfo}\x1b[0m`);
+    let u = apiResponse.usage;
+    u = `${apiResponse.model} (i${u.input_tokens} o${u.output_tokens} c${u.cache_read_input_tokens})`;
+    console.log(`\x1b[35m${u}\x1b[0m`);
 
-    // Process tool calls or handle completion
     const toolCalls = apiResponse.content?.filter(block => block.type === 'tool_use') || [];
-
     if (toolCalls.length === 0) { 
-      // Handle conversation completion or continue
-      if (!acceptUserInput) return shouldExit ? process.exit() : apiResponse;
-      else userInput(); // Continue dialog with LLM
+      if (!acceptUserInput) { return shouldExit ? process.exit() : apiResponse; }
+      else { userInput(); } // Continue dialog with LLM
     } else {
       // Execute all tool calls in parallel
       const toolResults = await Promise.all(toolCalls.map(async (toolCall) => {
@@ -92,9 +80,7 @@ export async function query({ userPrompt, tools, systemPrompt, shouldExit = fals
         const result = tool ? await tool.handler(toolCall) : '<tool-not-found>';
         return { type: "tool_result", tool_use_id: toolCall.id, content: JSON.stringify(result) };
       }));
-
-      // Send single message with all tool results
-      messages.push({ role: "user", content: toolResults });
+      messages.push({ role: "user", content: toolResults }); // Send single message with all tool results
     }
   } // End main loop
 }

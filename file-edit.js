@@ -3,42 +3,28 @@ import { dirname, isAbsolute, resolve } from 'path';
 
 const name = "FileEditTool";
 const N_LINES_SNIPPET = 4;
-const MAX_FILE_SIZE = 1024 * 1024 * 10; // 10MB
+const MAX_FILE_SIZE = 1024 * 1024 * 1; // 1MB
 
-// Compact error factory
 const createError = (msg, code) => ({ error: msg, code });
 
 export const DESCRIPTION = `This is a tool for editing files (add / remove / replace chunks of text or code). For moving or renaming files, you should generally use the Bash tool with the 'mv' command instead.`;
 
-// Unified encoding/line ending detection
 const detectFileProps = (filePath) => {
-  try {
-    const sample = readFileSync(filePath, 'utf8').slice(0, 1000);
-    return {
-      encoding: 'utf8',
-      lineEndings: sample.includes('\\r\\n') ? 'CRLF' : 'LF',
-      exists: true
-    };
-  } catch {
-    return { encoding: 'utf8', lineEndings: 'LF', exists: false };
-  }
+  try { // Unified encoding/line ending detection
+    const lineEndings = readFileSync(filePath, 'utf8').slice(0, 1000).includes('\\r\\n') ? 'CRLF' : 'LF';
+    return { encoding: 'utf8', exists: true, lineEndings };
+  } catch { return { encoding: 'utf8', exists: false, lineEndings: 'LF',}; }
 };
 
-// Functional content normalization
 const normalizeContent = (content, lineEndings) =>
-  lineEndings === 'CRLF' 
-    ? content.replace(/\\n/g, '\\r\\n') 
-    : content.replace(/\\r\\n/g, '\\n');
+  lineEndings === 'CRLF' ? content.replace(/\\n/g, '\\r\\n') : content.replace(/\\r\\n/g, '\\n');
 
-// Pure function for patch generation
 const generatePatch = (oldStr, newStr, startLine) => ({
   oldStart: startLine,
   oldLines: oldStr.split(/\\r?\\n/).length,
   newLines: newStr.split(/\\r?\\n/).length,
-  lines: [
-    ...oldStr.split('\\n').map(l => `- ${l}`),
-    ...newStr.split('\\n').map(l => `+ ${l}`)
-  ]
+  lines: [...oldStr.split('\\n').map(l => `- ${l}`),
+          ...newStr.split('\\n').map(l => `+ ${l}`),]
 });
 
 // Atomic file write with validation
@@ -48,30 +34,22 @@ const safeWrite = (path, content, encoding, lineEndings) => {
   writeFileSync(path, normalizeContent(content, lineEndings), encoding);
 };
 
-// Compact line numbering
-const addLineNumbers = (content, start = 1) => content
-  .split('\\n')
-  .map((line, i) => `${(start + i).toString().padStart(4)} | ${line}`)
-  .join('\\n');
+const addLineNumbers = (content, start = 1) => content.split('\\n')
+  .map((line, i) => `${(start + i).toString().padStart(4)} | ${line}`).join('\\n');
 
 // Optimized snippet extraction
 const getEditSnippet = (content, oldStr, newStr) => {
   const [before] = content.split(oldStr);
   const beforeLines = before.split(/\\r?\\n/);
   const start = Math.max(0, beforeLines.length - N_LINES_SNIPPET);
-  
-  return content.replace(oldStr, newStr)
-    .split(/\\r?\\n/)
-    .slice(start, start + (N_LINES_SNIPPET * 2))
-    .join('\\n');
+  return content.replace(oldStr, newStr).split(/\\r?\\n/)
+    .slice(start, start + (N_LINES_SNIPPET * 2)).join('\\n');
 };
 
 const schema = {
-  name, 
-  description: `Atomic file editing tool with context-aware patching`,
+  name, description: `Atomic file editing tool with context-aware patching`,
   parameters: {
-    type: "object",
-    required: ["file_path", "old_string", "new_string"],
+    type: "object", required: ["file_path", "old_string", "new_string"],
     properties: {
       file_path: { type: "string", description: "Absolute file path" },
       old_string: { type: "string", description: "Exact text to replace" },
@@ -83,7 +61,6 @@ const schema = {
 const handler = async ({ input: { file_path, old_string, new_string } }) => {
   const fullPath = isAbsolute(file_path) ? file_path : resolve(process.cwd(), file_path);
   
-  // Early validation
   if (old_string === new_string) return createError('No changes detected', 'NO_OP');
   if (Buffer.byteLength(new_string) > MAX_FILE_SIZE) {
     return createError('New content exceeds size limit', 'SIZE_LIMIT');
@@ -91,33 +68,26 @@ const handler = async ({ input: { file_path, old_string, new_string } }) => {
 
   const { encoding, lineEndings, exists } = detectFileProps(fullPath);
   
-  // File creation flow
-  if (old_string === '') {
+  if (old_string === '') {  // File creation
     if (exists) return createError('File exists', 'EXISTS');
     safeWrite(fullPath, new_string, encoding, lineEndings);
     return { type: 'created', path: file_path };
   }
 
-  // Edit flow
   if (!exists) return createError('File not found', 'NOT_FOUND');
   
   const content = readFileSync(fullPath, encoding);
   const matches = content.split(old_string).length - 1;
-  
-  if (matches !== 1) {
-    return createError(`${matches} matches found - needs unique context`, 'MATCH_ISSUE');
-  }
+  if (matches !== 1) { return createError(`${matches} matches found - needs unique context`, 'MATCH_ISSUE'); }
 
   const updated = content.replace(old_string, new_string);
   safeWrite(fullPath, updated, encoding, lineEndings);
 
   return {
-    type: 'updated',
-    path: file_path,
+    type: 'updated', path: file_path,
     patch: generatePatch(old_string, new_string, content.slice(0, content.indexOf(old_string)).split('\\n').length),
     snippet: addLineNumbers(getEditSnippet(content, old_string, new_string))
   };
 };
 
 export { name, schema, handler };
-

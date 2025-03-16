@@ -1,11 +1,10 @@
-import * as BashTool from './bash.js';
-import * as FileEditTool from './file-edit.js';
-import * as FileReadTool from './file-read.js';
-import * as FileWriteTool from './file-write.js';
-import * as ThinkTool from './think.js';
-
-const tools = [BashTool, FileEditTool, FileReadTool, FileWriteTool, 
-	 ...(process.env.TOGETHER_API_KEY ? [ThinkTool] : [])];
+import { isGit } from './shell.js'
+import * as Bash from './bash.js';
+import * as FileEdit from './file-edit.js';
+import * as FileRead from './file-read.js';
+import * as FileWrite from './file-write.js';
+import * as Think from './think.js';
+const tools = [Bash, FileEdit, FileRead, FileWrite, ...(process.env.TOGETHER_API_KEY ? [Think] : [])];
 
 import { query } from './api.js';
 import { LARGE_MODEL, SMALL_MODEL } from './constants.js';
@@ -19,12 +18,12 @@ const extractAllContexts = (str) => {
 
 const expandContext = async (ctxStr) => {
   try {
-    const globResult = await GlobTool.handler({  input: { pattern: ctxStr, path: process.cwd() } });
+    const globResult = await Glob.handler({  input: { pattern: ctxStr, path: process.cwd() } });
     if (!globResult.files?.length) { return `<context>No files matching: ${ctxStr}</context>`; }
 
     const fileContents = await Promise.all(
       globResult.files.map(async (filePath) => {
-        ( await FileReadTool.handler({ input: { file_path: filePath } }) ).error 
+        ( await FileRead.handler({ input: { file_path: filePath } }) ).error 
           ? `<file name="${filePath}" error="${readResult.error}"/>`
           : `<file name="${filePath}">${readResult.content}</file>`;
       })
@@ -112,17 +111,9 @@ export async function getEnvInfo() {
     workingDirectory: process.cwd(),
     platform: process.platform,
     nodeVersion: process.version,
-    isGitRepo: await checkIfGitRepo(),
+    isGitRepo: await isGit(),
     date: new Date().toISOString().split('T')[0]
   };
   return `\n# Environment Information\n${Object.entries(envInfo)
     .map(([key, value]) => `- **${key}**: ${value}`).join('\n')}`;
-}
-
-async function checkIfGitRepo() {
-  try {
-    const { execSync } = await import('child_process');
-    execSync('git rev-parse --is-inside-work-tree', { stdio: 'ignore' });
-    return true;
-  } catch { return false; }
 }

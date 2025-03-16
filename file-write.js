@@ -2,11 +2,9 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { dirname, isAbsolute, relative } from 'path';
 
 const name = "FileWriteTool";
-const MAX_LINES = 16000;
-const TRUNC_MSG = '<truncated>';
 
 const schema = { // test prompt: k -c apply api.js concise style into think.js
-  name, description: `Write the whole a file or create a brand new file. Forc content related action like edit, replace, change ... use file edit tool to avoid errors. For examples: FileWriteError: WriteOperation Cannot read properties of undefined (reading 'replace') was caused by using file write to edit text / code`,
+  name, description: `Write new content to a file or create a brand new file. For action like edit, replace, change ... use file edit tool to avoid errors. For examples: FileWriteError: WriteOperation Cannot read properties of undefined (reading 'replace') was caused by using file write to replace text in a existing file`,
   parameters: {
     type: "object", required: ["file_path", "content"],
     properties: {
@@ -23,13 +21,6 @@ const detectRepoEndings = () => process.platform === 'win32' ? '\r\n' : '\n';
 // Functional-style content normalization
 const normalizeContent = (content, endings) => 
   content.replace(/\r\n|\r|\n/g, endings).trim() + '\n';
-
-// Single-line helper functions
-const getPatch = (oldStr, newStr) => [{
-  oldLines: oldStr.split('\n').length,
-  newLines: newStr.split('\n').length,
-  lines: [`- ${oldStr}`, `+ ${newStr}`]
-}];
 
 const addLineNumbers = (content, start=1) => 
   content.split('\n').map((l,i) => `${(start+i).toString().padStart(4)} | ${l}`).join('\n');
@@ -56,24 +47,18 @@ const handler = async ({ input: { file_path, content } }) => {
     try { mkdirSync(dir, { recursive: true }); } 
     catch (e) { return handleError(e, 'CreateDirFailed'); }
 
-    // Normalize and truncate content
     const normalized = normalizeContent(content, endings);
-    const truncated = normalized.split('\n').slice(0, MAX_LINES).join('\n') + 
-      (normalized.length > MAX_LINES ? TRUNC_MSG : '');
+    writeFileSync(file_path, normalized, 'utf8');
 
-    // Atomic write operation
-    writeFileSync(file_path, truncated, 'utf8');
-
-    // Compact result formatting
     return exists ? {
       type: 'updated',
       filePath: relative(cwd, file_path),
-      patch: getPatch(oldContent, truncated),
-      preview: addLineNumbers(truncated)
+      patch: [`- ${oldContent.split('\n').length}`, `+ ${oldContent.split('\n').length}`],
+      preview: addLineNumbers(normalized)
     } : {
       type: 'created',
       filePath: relative(cwd, file_path),
-      preview: `New file created with ${truncated.length} bytes`
+      preview: `New file created with ${normalized.length} bytes`
     };
   } catch (error) { return handleError(error, 'WriteOperation'); }
 };
