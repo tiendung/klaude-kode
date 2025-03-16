@@ -58,3 +58,4 @@ MIT License
 
 ## TODOs
 - [ ] enhance prompt caching, reset ccc after reach max
+- [ ] file-edit / file-write fail rate is high, need to improve
