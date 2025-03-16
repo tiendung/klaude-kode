@@ -67,15 +67,18 @@ const handler = async (toolCall) => {
   const { prompt, model = "deepseek-ai/DeepSeek-R1", temperature = 0.6, max_tokens = 8000 } = toolCall.input;
 
   const files = await getAllFiles();
-  const fileContents = await Promise.all(
+  const fileContents = (await Promise.all(
     files.map(async (file) => `<file name='${file}'>${await readFileContent(file)}</file>`)
-  );
+  )).join('\n');
+
+  // Write fileContents to llm.txt before processing
+  await fs.writeFile('llm.txt', fileContents, 'utf8');
   
   const gitDiffs = { staged: getDiff("staged"), unstaged: getDiff("unstaged") };
   const diffContext = `\n<git-diffs>\n  <staged-changes files="${gitDiffs.staged.summary.files}">\n    ${gitDiffs.staged.diff}\n  </staged-changes>\n  <unstaged-changes files="${gitDiffs.unstaged.summary.files}">\n    ${gitDiffs.unstaged.diff}\n  </unstaged-changes>\n</git-diffs>`;
 
   const messages = [
-    { role: "user", content: `${fileContents.join('\n')}${diffContext}\n\n${prompt}` },
+    { role: "user", content: `${fileContents}${diffContext}\n\n${prompt}` },
     { role: "assistant", content: "<think>\n" } ];
 
   const response = await queryTogetherAI({ model, messages, temperature, max_tokens });

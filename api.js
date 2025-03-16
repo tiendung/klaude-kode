@@ -12,14 +12,7 @@ export async function api({ messages, tools, systemPrompt, model, maxTokens = 10
 
   if (model == LARGE_MODEL) headers["anthropic-beta"] = "token-efficient-tools-2025-02-19";
   const system = systemPrompt.map(prompt => ({ type: "text", text: prompt }));
-
-  // Always cache  the last message
-  let lastContent = messages.at(-1).content;
-  if (typeof lastContent === "object") {
-    lastContent = lastContent.at(-1);
-    lastContent.cache_control = {type: "ephemeral"};
-  } else messages.at(-1).content = [ {type: "text", text: lastContent, cache_control: {type: "ephemeral"}} ];
-  // console.log(messages.at(-1));
+  tools.at(-1).cache_control = {type: "ephemeral"}; // 1st cache_control
 
   const body = JSON.stringify({ system, model, messages, tools, max_tokens: maxTokens });
   const response = await fetch(url, {method: "POST", headers, body});
@@ -44,6 +37,17 @@ const log = (block) => {
   };
   (logTypes[typeof block] || (b => console.log(b)))(block);
 };
+
+
+function cacheControl(messages) {
+  let lastContent = messages.at(-1).content;
+  if (typeof lastContent === "object") {
+    lastContent = lastContent.at(-1); 
+    lastContent.cache_control = {type: "ephemeral"}; // Always prompt cache the last message
+  } else messages.at(-1).content = [{type: "text", text: lastContent, cache_control: {type: "ephemeral"}}];
+}
+const maxCacheControls = 3; // SMALL_MODEL only have 3 left
+let ccc = 1; // cache control count: use 1 at sys prompt + tool cache
 
 export async function query({ userPrompt, tools, systemPrompt, shouldExit = false,
   model = SMALL_MODEL, maxTokens = 1024, acceptUserInput = false }) {
@@ -71,8 +75,12 @@ export async function query({ userPrompt, tools, systemPrompt, shouldExit = fals
     log(assistantMessage);
 
     let u = apiResponse.usage;
+    const total = u.input_tokens + u.output_tokens + u.cache_read_input_tokens;
     u = `${apiResponse.model} (i_${u.input_tokens} o_${u.output_tokens} c_${u.cache_read_input_tokens})`;
     console.log(`\x1b[35m${u}\x1b[0m`);
+
+    if (model === LARGE_MODEL) { cacheControl(messages) }
+    else if (ccc < maxCacheControls && total > ccc*5000) { ccc += 1; cacheControl(messages); }
 
     const toolCalls = apiResponse.content?.filter(block => block.type === 'tool_use') || [];
     if (toolCalls.length === 0) { 
