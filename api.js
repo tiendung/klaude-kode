@@ -9,11 +9,12 @@ function cacheControl(messages) {
     lastContent = lastContent.at(-1); 
     lastContent.cache_control = {type: "ephemeral"}; // prompt cache the last message
   } else messages.at(-1).content = [{type: "text", text: lastContent, cache_control: {type: "ephemeral"}}];
-  console.log(messages);
+  console.log("!! prompt cache at", lastCacheUsedToken);
 }
-const maxCacheControls = 4; // SMALL_MODEL have 4 cache controls
-var ccc = 0, lastCacheUsedToken;
-let maxUncached = [ 0, 2000, 3000, 4000 ]; // last cache at 12k tokens
+
+const maxCacheControls = 4; // we have total 4 cache controls per chat session, use it wisely
+var ccc = 0, lastCacheUsedToken = 3000;
+let maxUncached = [ 0, 3000, 5000, 7000 ]; // last cache at 18k tokens
 
 export async function api({ messages, tools, systemPrompt, model, maxTokens = 1024, usedTokens = 0 }) {
   const url = "https://api.anthropic.com/v1/messages";
@@ -24,25 +25,20 @@ export async function api({ messages, tools, systemPrompt, model, maxTokens = 10
   };
   const system = systemPrompt.map(prompt => ({ type: "text", text: prompt }));
 
-  if (model === LARGE_MODEL) {
-    headers["anthropic-beta"] = "token-efficient-tools-2025-02-19";
-    cacheControl(messages);
-  } else { // SMALL_MODEL
-    if (ccc === 0) {
-      ccc = 1;
-      cacheControl(messages); // 1st cache_control
-      lastCacheUsedToken = 3000; // ước chừng, cần tính chi tiết
-    }
-    const uncached = usedTokens - lastCacheUsedToken;
-    if (ccc < maxCacheControls && uncached > maxUncached[ccc]) { 
-      ccc += 1; lastCacheUsedToken = usedTokens;
-      cacheControl(messages); 
-    }
+  if (model === LARGE_MODEL) { headers["anthropic-beta"] = "token-efficient-tools-2025-02-19"; }
+  if (ccc === 0) {
+    ccc = 1; lastCacheUsedToken = 3000; // ước chừng, cần tính chi tiết
+    cacheControl(messages, lastCacheUsedToken); // 1st cache control
   }
-  const body = JSON.stringify({ system, model, messages, tools, max_tokens: maxTokens });
-  writeFile('./llm_call.json', body);
+  const uncached = usedTokens - lastCacheUsedToken;
+  if (ccc < maxCacheControls && uncached > maxUncached[ccc]) { 
+    ccc += 1; lastCacheUsedToken = usedTokens;
+    cacheControl(messages, lastCacheUsedToken); // next cache control
+  }
+  const body = { system, model, messages, tools, max_tokens: maxTokens };
+  writeFile('./llm_call.json', JSON.stringify(body, 2, null));
 
-  const response = await fetch(url, {method: "POST", headers, body});
+  const response = await fetch(url, {method: "POST", headers, body: JSON.stringify(body)});
 
   if (!response.ok) {
     const error = await response.json();

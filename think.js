@@ -14,12 +14,7 @@ const schema = {
   name, description: DESCRIPTION,
   parameters: {
     type: "object", required: ["prompt"],
-    properties: {
-      prompt: { type: "string", description: "The problem or task to think about" },
-      model: { type: "string", default: "deepseek-ai/DeepSeek-R1" },
-      temperature: { type: "number", description: "Controls randomness (0.6-0.65)", default: 0.6 },
-      max_tokens: { type: "number", default: 8000 }
-    }
+    properties: { prompt: { type: "string", description: "The problem or task to think about" },}
   }
 };
 

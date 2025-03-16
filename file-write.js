@@ -4,7 +4,7 @@ import { dirname, isAbsolute, relative } from 'path';
 const name = "FileWriteTool";
 
 const schema = { // test prompt: k -c apply api.js concise style into think.js
-  name, description: `Write new content to a file or create a brand new file. For action like edit, replace, change ... use file edit tool to avoid errors. For examples: FileWriteError: WriteOperation Cannot read properties of undefined (reading 'replace') was caused by using file write to replace text in a existing file`,
+  name, description: `Write new content to a file or create a brand new file. You MUST prepare content carefully. Content cannot be empty.`,
   parameters: {
     type: "object", required: ["file_path", "content"],
     properties: {
