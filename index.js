@@ -15,7 +15,7 @@ import { LARGE_MODEL, SMALL_MODEL } from './constants.js';
 
 // Enhanced context extraction utilities
 const extractAllContexts = (str) => {
-  const regex = /<context>(.*?)<\\/context>/g;
+  const regex = /<context>(.*?)<\/context>/g;
   const matches = [...str.matchAll(regex)];
   return matches.map(match => ({ 
     full: match[0], 
@@ -25,14 +25,14 @@ const extractAllContexts = (str) => {
   }));
 };
 
-const expandContext = async (contextStr) => {
+const expandContext = async (ctxStr) => {
   try {
     const globResult = await GlobTool.handler({ 
-      input: { pattern: contextStr, path: process.cwd() } 
+      input: { pattern: ctxStr, path: process.cwd() } 
     });
 
     if (!globResult.files?.length) {
-      return `<context>No files matching: ${contextStr}</context>`;
+      return `<context>No files matching: ${ctxStr}</context>`;
     }
 
     const fileContents = await Promise.all(
@@ -44,7 +44,7 @@ const expandContext = async (contextStr) => {
       })
     );
     
-    return `<context pattern="${contextStr}">\n${fileContents.join('\n')}\n</context>`;
+    return `<context pattern="${ctxStr}">\n${fileContents.join('\n')}\n</context>`;
   } catch (error) {
     return `<context error="${error.message}"/>`;
   }
@@ -56,18 +56,20 @@ const getPrompt = process.argv[2] === '-p';
 const getCustomPrompt = process.argv[2] === '-c';
 const acceptUserInput = getCustomPrompt || !getPrompt;
 const userInput = process.argv.slice(3).join(' ');
+// Global context storage
+let globalContext = [];
+
 // Async function to process input with context expansion
 const processUserInput = async (userInput) => {
   let processedInput = userInput;
   const contexts = extractAllContexts(userInput).reverse(); // Process last-first
 
-  for (const ctx of contexts) {
-    const expanded = await expandContext(ctx.content);
-    processedInput = 
-      processedInput.slice(0, ctx.startIdx) +
-      expanded +
-      processedInput.slice(ctx.endIdx);
-  }
+  globalContext = await Promise.all(
+    contexts.map(async (ctx) => await expandContext(ctx.content))
+  );
+
+  // Remove context from user input
+  processedInput = userInput.replace(/<context>.*?<\/context>/g, '').trim();
 
   return processedInput;
 };
