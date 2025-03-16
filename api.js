@@ -66,7 +66,7 @@ export async function query({ userPrompt, tools, systemPrompt, shouldExit = fals
     log(assistantMessage);
 
     let u = apiResponse.usage;
-    u = `${apiResponse.model} (i${u.input_tokens} o${u.output_tokens} c${u.cache_read_input_tokens})`;
+    u = `${apiResponse.model} (i_${u.input_tokens} o_${u.output_tokens} c_${u.cache_read_input_tokens})`;
     console.log(`\x1b[35m${u}\x1b[0m`);
 
     const toolCalls = apiResponse.content?.filter(block => block.type === 'tool_use') || [];
