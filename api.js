@@ -11,10 +11,15 @@ export async function api({ messages, tools, systemPrompt, model, maxTokens = 10
   };
 
   if (model == LARGE_MODEL) headers["anthropic-beta"] = "token-efficient-tools-2025-02-19";
-
   const system = systemPrompt.map(prompt => ({ type: "text", text: prompt }));
-  system.at(-1).cache_control = {type: "ephemeral"};
-  tools.at(-1).cache_control = {type: "ephemeral"};
+
+  // Always cache  the last message
+  let lastContent = messages.at(-1).content;
+  if (typeof lastContent === "object") {
+    lastContent = lastContent.at(-1);
+    lastContent.cache_control = {type: "ephemeral"};
+  } else messages.at(-1).content = [ {type: "text", text: lastContent, cache_control: {type: "ephemeral"}} ];
+  // console.log(messages.at(-1));
 
   const body = JSON.stringify({ system, model, messages, tools, max_tokens: maxTokens });
   const response = await fetch(url, {method: "POST", headers, body});
