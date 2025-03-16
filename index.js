@@ -1,9 +1,9 @@
 import { isGit } from './shell.js'
-import * as Bash from './bash.js';
-import * as FileEdit from './file-edit.js';
-import * as FileRead from './file-read.js';
-import * as FileWrite from './file-write.js';
-import * as Think from './think.js';
+import * as Bash from './bash-tool.js';
+import * as FileEdit from './file-edit-tool.js';
+import * as FileRead from './file-read-tool.js';
+import * as FileWrite from './file-write-tool.js';
+import * as Think from './think-tool.js';
 const tools = [Bash, FileEdit, FileRead, FileWrite, ...(process.env.TOGETHER_API_KEY ? [Think] : [])];
 
 import { query } from './api.js';
@@ -37,7 +37,7 @@ const processUserInput = async (userInput) => {
   let processedInput = userInput;
   const contexts = extractAllContexts(userInput).reverse(); // Process last-first
   globalContext = await Promise.all( contexts.map(async (ctx) => await expandContext(ctx.content)) );
-  processedInput = userInput.replace(/<context>.*?<\/context>/g, '').trim(); // Remove ctx from user input
+  // Keep the context tags in the processed input
   return processedInput;
 };
 

@@ -49,11 +49,8 @@ node index.js -p "Refactor authentication middleware"
 node index.js -p "Think to solve: <complex coding challenge>"
 
 # 🆕 Context Expansion Feature
-# Single file analysis
-node index.js -p "<context>index.js</context> Analyze this file"
-
-# Multiple file comparison
-node index.js -p "<context>src/auth.js src/middleware.js</context> Compare implementations"
+# Multiple files
+node index.js -p "<context>file-edit.js file-write.js</context> Compare implementations"
 
 # Wildcard file pattern
 node index.js -p "<context>*.js</context> List and explain all JavaScript files"

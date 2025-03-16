@@ -4,7 +4,7 @@ import { extname } from 'path';
 
 const name = "FileReadTool";
 const IMAGE_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp']);
-const DESCRIPTION = `Reads a file from the local filesystem. The file_path parameter MUST be an absolute path.`;
+const DESCRIPTION = `Reads a file from the local filesystem. Note: file_path parameter MUST be an absolute path.`;
 
 const schema = {
   name: name, description: DESCRIPTION,
