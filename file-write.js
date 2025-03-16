@@ -9,7 +9,7 @@ const schema = { // test prompt: k -c apply api.js concise style into think.js
     type: "object", required: ["file_path", "content"],
     properties: {
       file_path: { type: "string", description: "The absolute path to the file to write (not relative)" },
-      content: { type: "string", description: "The content to write to the file" }
+      content: { type: "string", description: "The content to write to the file", minLength: 1 }
     }
   }
 };
@@ -33,6 +33,14 @@ const handleError = (error, context) => {
 
 const handler = async ({ input: { file_path, content } }) => {
   try {
+    // Validate content is non-empty
+    if (typeof content !== 'string' || !content.trim()) {
+      return { 
+        error: "Content cannot be empty",
+        code: "EMPTY_CONTENT",
+        hint: "For empty files, use: echo -n > file.txt"
+      };
+    }
     if (!isAbsolute(file_path)) return { error: "Path must be absolute" };
     
     const cwd = process.cwd();

@@ -68,3 +68,6 @@ Contributions welcome! Please keep PRs minimal and focused.
 ## 📄 License
 MIT License
 *Crafted with ❤️ for developers who love clean, efficient tools*
+
+## TODOs
+- [ ] enhance prompt caching, reset ccc after reach max
