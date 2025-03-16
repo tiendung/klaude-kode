@@ -16,38 +16,33 @@ import { LARGE_MODEL, SMALL_MODEL } from './constants.js';
 // Enhanced context extraction utilities
 const extractAllContexts = (str) => {
   const regex = /<context>(.*?)<\/context>/g;
-  const matches = [...str.matchAll(regex)];
-  return matches.map(match => ({ 
-    full: match[0], 
-    content: match[1].trim(),
-    startIdx: match.index,
-    endIdx: match.index + match[0].length
-  }));
+  return [...str.matchAll(regex)].map(match => ({ full: match[0], content: match[1].trim(), 
+  	startIdx: match.index, endIdx: match.index + match[0].length }));
 };
 
 const expandContext = async (ctxStr) => {
   try {
-    const globResult = await GlobTool.handler({ 
-      input: { pattern: ctxStr, path: process.cwd() } 
-    });
-
-    if (!globResult.files?.length) {
-      return `<context>No files matching: ${ctxStr}</context>`;
-    }
+    const globResult = await GlobTool.handler({  input: { pattern: ctxStr, path: process.cwd() } });
+    if (!globResult.files?.length) { return `<context>No files matching: ${ctxStr}</context>`; }
 
     const fileContents = await Promise.all(
       globResult.files.map(async (filePath) => {
-        const readResult = await FileReadTool.handler({ input: { file_path: filePath } });
-        return readResult.error 
+        ( await FileReadTool.handler({ input: { file_path: filePath } }) ).error 
           ? `<file name="${filePath}" error="${readResult.error}"/>`
           : `<file name="${filePath}">${readResult.content}</file>`;
       })
     );
-    
     return `<context pattern="${ctxStr}">\n${fileContents.join('\n')}\n</context>`;
-  } catch (error) {
-    return `<context error="${error.message}"/>`;
-  }
+  } catch (error) { return `<context pattern="${ctxStr}" error="${error.message}"/>`; }
+};
+
+let globalContext = [];
+const processUserInput = async (userInput) => {
+  let processedInput = userInput;
+  const contexts = extractAllContexts(userInput).reverse(); // Process last-first
+  globalContext = await Promise.all( contexts.map(async (ctx) => await expandContext(ctx.content)) );
+  processedInput = userInput.replace(/<context>.*?<\/context>/g, '').trim(); // Remove ctx from user input
+  return processedInput;
 };
 
 const systemPrompt = await getSystemPrompt();
@@ -56,34 +51,13 @@ const getPrompt = process.argv[2] === '-p';
 const getCustomPrompt = process.argv[2] === '-c';
 const acceptUserInput = getCustomPrompt || !getPrompt;
 const userInput = process.argv.slice(3).join(' ');
-// Global context storage
-let globalContext = [];
+const userPrompt = getPrompt || getCustomPrompt ? await processUserInput(userInput) : null;
 
-// Async function to process input with context expansion
-const processUserInput = async (userInput) => {
-  let processedInput = userInput;
-  const contexts = extractAllContexts(userInput).reverse(); // Process last-first
-
-  globalContext = await Promise.all(
-    contexts.map(async (ctx) => await expandContext(ctx.content))
-  );
-
-  // Remove context from user input
-  processedInput = userInput.replace(/<context>.*?<\/context>/g, '').trim();
-
-  return processedInput;
-};
-
-const userPrompt = getPrompt || getCustomPrompt ? 
-  await processUserInput(userInput) : 
-  null;
-
-// Giải thích: -c prompt giống -p ở chỗ nhập prompt từ terminal nhưng tiếp tục nói chuyện (interactive mode)
 await query({ userPrompt, tools, systemPrompt, acceptUserInput, model, shouldExit: true })
   .catch(error => console.error("Error:", error));
 
+
 import { readFile } from 'fs/promises';
-// Removed agent.js import
 
 export async function getSystemPrompt() {
   return [`You are agent K, an interactive CLI tool that assists users with software engineering tasks.
@@ -124,7 +98,6 @@ Store any relevant commands, code styles, or important codebase details in KLAUD
     
 # Tool usage policy
 - Use function_calls block for independent tool calls`,
-    
     `\n${await getMemory()}`,
     `\n${await getEnvInfo()}`,
   ];
@@ -145,10 +118,8 @@ export async function getEnvInfo() {
     isGitRepo: await checkIfGitRepo(),
     date: new Date().toISOString().split('T')[0]
   };
-
   return `\n# Environment Information\n${Object.entries(envInfo)
-    .map(([key, value]) => `- **${key}**: ${value}`)
-    .join('\n')}`;
+    .map(([key, value]) => `- **${key}**: ${value}`).join('\n')}`;
 }
 
 async function checkIfGitRepo() {
