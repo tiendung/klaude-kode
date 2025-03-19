@@ -1,6 +1,6 @@
 # Agent K 🤖
 Minimal CLI tool for AI-assisted coding and multi-purpose tasks.
-Simple (under 2000 lines of code) and easy to use and extend (see `think.js` tool).
+Simple (under 1000 lines of code) and easy to use and extend (see `think.js` tool).
 
 ## ✨ Core Philosophy
 - **Minimalist Design**: Every line of code serves a purpose; every token counts.
