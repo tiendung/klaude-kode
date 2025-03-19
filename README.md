@@ -12,12 +12,6 @@ Simple (under 1000 lines of code) and easy to use and extend (see `think.js` too
 2. **FileTools**: Atomic file read/write/edit
 3. **ThinkTool**: Advanced reasoning and brainstorming
 
-### 🌟 Context Expansion
-- Dynamically inject file contents into system prompt (for caching)
-- Support for single files, multiple files
-- Glob pattern matching (e.g., `*.js`, `src/**/*.ts`)
-- Automatically handles file reading and error scenarios
-
 ## 🚀 Prerequisites
 - Node.js
 - Anthropic API Key
